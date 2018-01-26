@@ -70,26 +70,26 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)Externals\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Externals\freeglut\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Externals\freeglut\include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Externals\</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\freeglut\lib;$(SolutionDir)Externals\glew\lib\Release\x86;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)Intermediate\</IntDir>
     <OutDir>$(SolutionDir)Output\$(PlatformTarget)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)Externals\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Externals\freeglut\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Externals\freeglut\include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Externals\</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\freeglut\lib;$(SolutionDir)Externals\glew\lib\Release\x86;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)Intermediate\</IntDir>
     <OutDir>$(SolutionDir)Output\$(PlatformTarget)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Externals\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Externals\freeglut\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Externals\freeglut\include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Externals\</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\freeglut\lib\x64;$(SolutionDir)Externals\glew\lib\Release\x64;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)Intermediate\</IntDir>
     <OutDir>$(SolutionDir)Output\$(PlatformTarget)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Externals\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Externals\freeglut\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Externals\freeglut\include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Externals\</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\freeglut\lib\x64;$(SolutionDir)Externals\glew\lib\Release\x64;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)Intermediate\</IntDir>
     <OutDir>$(SolutionDir)Output\$(PlatformTarget)</OutDir>
   </PropertyGroup>
@@ -101,7 +101,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>OpenGL32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;freeglut.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -112,7 +112,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>OpenGL32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;freeglut.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -127,7 +127,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>OpenGL32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;freeglut.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,7 +142,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>OpenGL32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;freeglut.lib;glew32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
