@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Externals">
+      <UniqueIdentifier>{3701bec8-81a1-4b8b-a117-bc2563c3e719}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Externals\Header Files">
+      <UniqueIdentifier>{53c84834-639e-43c5-a5c8-e12eac21ce18}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\LOpenGL.h">
@@ -20,6 +26,9 @@
     </ClInclude>
     <ClInclude Include="source\LUtil.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\cyCodeBase\cyTriMesh.h">
+      <Filter>Externals\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
