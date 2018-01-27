@@ -3,9 +3,9 @@
 #include "Mesh\Mesh.h"
 #include "Effect\Effect.h"
 
-#include <cyCodeBase\cyTriMesh.h>
-#include <cyCodeBase\cyGL.h>
-#include <cyCodeBase\cyMatrix.h>
+#include <cyCode\cyTriMesh.h>
+#include <cyCode\cyGL.h>
+#include <cyCode\cyMatrix.h>
 
 #include <vector>
 #include <iostream>
@@ -22,6 +22,13 @@ cy::Matrix4<float> Model;
 cy::Matrix4<float> View;
 cy::Matrix4<float> Projection;
 cy::Matrix4<float> MVP;
+
+bool LeftClicked = false;
+bool RightClicked = false;
+
+static int mouseXPos = 0;
+static int mouseYPos = 0;
+float mouseDelta = 0;
 
 bool InitGL()
 {
@@ -47,7 +54,6 @@ bool InitGL()
 	View.SetView(cy::Point3<float>(0, -30, 50), cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
 	Projection.SetPerspective(1, 1.0f, 0.1f, 100.0f);
 
-
 	return true;
 }
 
@@ -58,6 +64,17 @@ void Update()
 
 //	Green += delta;
 //	delta = (Green >= 1.0) ? -0.01f : (Green <= 0.0) ? 0.01f : delta;
+
+	if (LeftClicked)
+	{
+		View *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseDelta);
+	}
+
+	if (RightClicked)
+	{
+		View.AddTrans(cy::Point3f(0, 0, mouseDelta));
+	}
+
 
 	MVP = Projection * View * Model;
 
@@ -70,68 +87,84 @@ void Input(unsigned char i_Key, int i_MouseX, int i_MouseY)
 {
 	switch (i_Key) 
 	{
+		//27: ESC key
+		case 27:
+			glutLeaveMainLoop();
+			break;
 
-	//27: ESC key
-	case 27:
-		glutLeaveMainLoop();
+		case 'p':
+
+			break;
+
+		default:
+			std::cout << i_Key << std::endl;
+			break;
+	}
+}
+
+void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
+{
+	switch (i_Key)
+	{
+
+	case GLUT_KEY_F6:
+		std::cout << "Change Color" << std::endl;
+		Effect.Create("vShader", "fShader2");
+		break;
+
+	case GLUT_KEY_F7:
+		std::cout << "Change Color" << std::endl;
+		Effect.Create("vShader", "fShader");
+		break;
+
+	case GLUT_KEY_LEFT:
+		Model.AddTrans(cy::Point3f(0.1f, 0, 0));
+		break;
+
+	case GLUT_KEY_RIGHT:
+		Model.AddTrans(cy::Point3f(-0.1, 0, 0));
+		break;
+
+	case GLUT_KEY_UP:
+		Model.AddTrans(cy::Point3f(0, 0.1f, 0));
+		break;
+
+	case GLUT_KEY_DOWN:
+		Model.AddTrans(cy::Point3f(0, -0.1f, 0));
 		break;
 
 	default:
+		std::cout << i_Key << std::endl;
 		break;
 	}
 }
 
 
-bool LeftClicked = false;
-bool RightClicked = false;
+
 
 void MouseClicks(int button, int state, int x, int y)
 {
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	if (button == GLUT_LEFT_BUTTON)
 	{
-		LeftClicked = true;
-	}
-	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
-	{
-		LeftClicked = false;
+		LeftClicked = (state == GLUT_DOWN);
 	}
 
-	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+	if (button == GLUT_RIGHT_BUTTON)
 	{
-		RightClicked = true;
-	}
-	else if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
-	{
-		RightClicked = false;
+		RightClicked = (state == GLUT_DOWN);
 	}
 
-	std::cout << LeftClicked << " " << RightClicked << std::endl;
 
+	mouseXPos = x;
+	mouseYPos = y;
 }
 
 void myMouseMove(int x, int y)
 {
-	std::cout << LeftClicked << " " << RightClicked << std::endl;
+	mouseDelta = 0.05f * (mouseXPos - x);
 
-	static int last_x = x;
-	static int last_y = y;
-	static float last_angle = x;
-
-	if (RightClicked)
-	{
-		float delta = 0.1f * ((last_x - x) + (last_y - y));
-
-		View.AddTrans(cy::Point3f(0, 0, delta));
-	}
-	
-	if (LeftClicked);
-	{
-		float delta = 0.0001f * (last_angle - x);
-	//	View *= cy::Matrix4<float>::MatrixRotationZ(delta);
-	}
-
-	last_x = x;
-	last_y = y;
+	mouseXPos = x;
+	mouseYPos = y;
 }
 
 void Render()

@@ -20,6 +20,7 @@ int main( int argc, char* args[] )
 	glutDisplayFunc(Render);
 	glutIdleFunc(Update);
 	glutKeyboardFunc(Input);
+	glutSpecialFunc(SpecialInput);
 
 	glutMouseFunc(MouseClicks);
 	glutMotionFunc(myMouseMove);

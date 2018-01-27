@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glew\include\GL\glew.h>
-#include <cyCodeBase\cyTriMesh.h>
+#include <cyCode\cyTriMesh.h>
 
 #include <vector>
 

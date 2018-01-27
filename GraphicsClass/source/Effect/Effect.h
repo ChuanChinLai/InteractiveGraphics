@@ -2,7 +2,7 @@
 
 #include "../LUtil.h"
 
-#include <cyCodeBase\cyGL.h>
+#include <cyCode\cyGL.h>
 
 namespace Lai
 {
@@ -24,22 +24,3 @@ namespace Lai
 		GLuint m_ProgramID;
 	};
 }
-
-//#include <glew\include\GL\glew.h>
-//#include <cyCodeBase\cyGL.h>
-//
-//namespace Lai
-//{
-//	class Effect
-//	{
-//	public:
-//		void Create(std::string i_vertex, std::string i_fragment);
-//
-//		GLuint GetID();
-//	private:
-//
-//		GLuint m_ProgramID;
-//		cy::GLSLProgram m_Program;
-//	};
-//}
-//
