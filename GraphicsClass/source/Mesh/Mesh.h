@@ -16,13 +16,11 @@ namespace Lai
 		bool Create(std::string i_fileName);
 		void Render();
 
-	private:
-
-
-
-		GLuint m_vertex_buffer_Id = 0;
 		cy::TriMesh m_Mesh;
 
+	private:
+
+		GLuint m_vertex_buffer_Id = 0;
 		std::vector<cy::Point3f> m_vertex_buffer_data;
 	};
 }

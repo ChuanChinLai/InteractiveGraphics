@@ -18,17 +18,21 @@ Lai::Effect Effect;
 GLuint VAO;
 GLuint MatrixID;
 
+
 cy::Matrix4<float> Model;
 cy::Matrix4<float> View;
 cy::Matrix4<float> Projection;
 cy::Matrix4<float> MVP;
 
+
 bool LeftClicked = false;
 bool RightClicked = false;
 
-static int mouseXPos = 0;
-static int mouseYPos = 0;
-float mouseDelta = 0;
+int mouseXPos = 0;
+int mouseYPos = 0;
+
+float mouseXDelta = 0;
+float mouseYDelta = 0;
 
 bool InitGL()
 {
@@ -43,16 +47,29 @@ bool InitGL()
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
-
 	Teapot.Create("teapot.obj");
-
 	Effect.Create("vShader", "fShader");
-
 	MatrixID = glGetUniformLocation(Effect.GetID(), "MVP");
 
 	Model.SetIdentity();
+
+	{
+		Teapot.m_Mesh.ComputeBoundingBox();
+
+		cy::Point3<float> min = Teapot.m_Mesh.GetBoundMin();
+		cy::Point3<float> max = Teapot.m_Mesh.GetBoundMax();
+		
+		cy::Point3<float> Translate = (min + max) / 2;
+
+		Model.AddTrans(-Translate);
+	}
+
+
 	View.SetView(cy::Point3<float>(0, -30, 50), cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
+
 	Projection.SetPerspective(1, 1.0f, 0.1f, 100.0f);
+
+	MVP = Projection * View * Model;
 
 	return true;
 }
@@ -60,21 +77,20 @@ bool InitGL()
 void Update()
 {
 	static float Green = 0.0f;
-	static float delta = 0.01f;
 
 //	Green += delta;
 //	delta = (Green >= 1.0) ? -0.01f : (Green <= 0.0) ? 0.01f : delta;
 
 	if (LeftClicked)
 	{
-		View *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseDelta);
+		View *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseXDelta);
+		View *= cy::Matrix4<float>::MatrixRotationY(0.1f * mouseYDelta);
 	}
 
 	if (RightClicked)
 	{
-		View.AddTrans(cy::Point3f(0, 0, mouseDelta));
+		View.AddTrans(cy::Point3f(0, 0, mouseXDelta));
 	}
-
 
 	MVP = Projection * View * Model;
 
@@ -109,20 +125,20 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 
 	case GLUT_KEY_F6:
 		std::cout << "Change Color" << std::endl;
-		Effect.Create("vShader", "fShader2");
+		Effect.Create("vShader", "fShader");
 		break;
 
 	case GLUT_KEY_F7:
 		std::cout << "Change Color" << std::endl;
-		Effect.Create("vShader", "fShader");
+		Effect.Create("vShader", "fShader2");
 		break;
 
 	case GLUT_KEY_LEFT:
-		Model.AddTrans(cy::Point3f(0.1f, 0, 0));
+		Model.AddTrans(cy::Point3f(-0.1f, 0, 0));
 		break;
 
 	case GLUT_KEY_RIGHT:
-		Model.AddTrans(cy::Point3f(-0.1, 0, 0));
+		Model.AddTrans(cy::Point3f(0.1, 0, 0));
 		break;
 
 	case GLUT_KEY_UP:
@@ -161,7 +177,8 @@ void MouseClicks(int button, int state, int x, int y)
 
 void myMouseMove(int x, int y)
 {
-	mouseDelta = 0.05f * (mouseXPos - x);
+	mouseXDelta = 0.05f * (mouseXPos - x);
+	mouseYDelta = 0.05f * (mouseYPos - y);
 
 	mouseXPos = x;
 	mouseYPos = y;
