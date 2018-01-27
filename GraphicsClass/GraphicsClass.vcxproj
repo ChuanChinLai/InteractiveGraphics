@@ -150,9 +150,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Externals\cyCodeBase\cyGL.h" />
+    <ClInclude Include="..\Externals\cyCodeBase\cyMatrix.h" />
     <ClInclude Include="..\Externals\cyCodeBase\cyTriMesh.h" />
     <ClInclude Include="source\LOpenGL.h" />
     <ClInclude Include="source\LUtil.h" />
+    <ClInclude Include="source\Mesh\Mesh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\LUtil.cpp" />

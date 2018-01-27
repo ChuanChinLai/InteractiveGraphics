@@ -30,6 +30,15 @@
     <ClInclude Include="..\Externals\cyCodeBase\cyTriMesh.h">
       <Filter>Externals\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Externals\cyCodeBase\cyMatrix.h">
+      <Filter>Externals\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\cyCodeBase\cyGL.h">
+      <Filter>Externals\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Mesh\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\LUtil.cpp">
