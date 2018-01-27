@@ -12,4 +12,7 @@ bool InitGL();
 
 void Update();
 void Input(unsigned char i_Key, int i_MouseX, int i_MouseY);
+void MouseClicks(int button, int state, int x, int y);
 void Render();
+
+void myMouseMove(int x, int y);

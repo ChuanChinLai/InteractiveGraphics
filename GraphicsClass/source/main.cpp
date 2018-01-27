@@ -21,9 +21,13 @@ int main( int argc, char* args[] )
 	glutIdleFunc(Update);
 	glutKeyboardFunc(Input);
 
+	glutMouseFunc(MouseClicks);
+	glutMotionFunc(myMouseMove);
 
 	//Start GLUT main loop
 	glutMainLoop();
+
+	printf("Test");
 
 	return 0;
 }

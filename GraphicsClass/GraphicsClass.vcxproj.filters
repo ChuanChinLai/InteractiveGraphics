@@ -19,14 +19,14 @@
     <Filter Include="Externals\Header Files">
       <UniqueIdentifier>{53c84834-639e-43c5-a5c8-e12eac21ce18}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{a5d2c882-040a-4c37-8f84-cb76675bf891}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect">
+      <UniqueIdentifier>{f30fc441-8987-41e1-91e5-c369a02d61e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\LOpenGL.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="source\LUtil.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Externals\cyCodeBase\cyTriMesh.h">
       <Filter>Externals\Header Files</Filter>
     </ClInclude>
@@ -37,18 +37,30 @@
       <Filter>Externals\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Mesh\Mesh.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="source\LOpenGL.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\LUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Effect\Effect.h">
+      <Filter>Effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\LUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Mesh\Mesh.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
     <ClCompile Include="source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\Mesh\Mesh.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="source\Effect\Effect.cpp">
+      <Filter>Effect</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

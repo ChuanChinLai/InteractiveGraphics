@@ -153,11 +153,13 @@
     <ClInclude Include="..\Externals\cyCodeBase\cyGL.h" />
     <ClInclude Include="..\Externals\cyCodeBase\cyMatrix.h" />
     <ClInclude Include="..\Externals\cyCodeBase\cyTriMesh.h" />
+    <ClInclude Include="source\Effect\Effect.h" />
     <ClInclude Include="source\LOpenGL.h" />
     <ClInclude Include="source\LUtil.h" />
     <ClInclude Include="source\Mesh\Mesh.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\Effect\Effect.cpp" />
     <ClCompile Include="source\LUtil.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\Mesh\Mesh.cpp" />

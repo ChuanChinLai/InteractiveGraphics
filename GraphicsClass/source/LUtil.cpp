@@ -1,5 +1,8 @@
 #include "LUtil.h"
 
+#include "Mesh\Mesh.h"
+#include "Effect\Effect.h"
+
 #include <cyCodeBase\cyTriMesh.h>
 #include <cyCodeBase\cyGL.h>
 #include <cyCodeBase\cyMatrix.h>
@@ -9,20 +12,16 @@
 #include <fstream>
 #include <sstream>  
 
+Lai::Mesh Teapot;
+Lai::Effect Effect;
+
 GLuint VAO;
-
-GLuint vertexbuffer;
-GLuint programID;
 GLuint MatrixID;
-
-cy::GLSLProgram Test;
-cy::TriMesh mesh;
 
 cy::Matrix4<float> Model;
 cy::Matrix4<float> View;
 cy::Matrix4<float> Projection;
 cy::Matrix4<float> MVP;
-
 
 bool InitGL()
 {
@@ -37,86 +36,17 @@ bool InitGL()
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
-	if (mesh.LoadFromFileObj("teapot.obj"))
-	{
-		std::cout << "Good" << std::endl;
-	}
-	else
-	{
-		std::cout << "Bad" << std::endl;
-	}
 
-	//cy::Point3f* Vertices = new cy::Point3f[mesh.NV()];
+	Teapot.Create("teapot.obj");
 
-	//for (int i = 0; i < mesh.NV(); i++)
-	//{
-	//	Vertices[i].x = mesh.V(i).x;
-	//	Vertices[i].y = mesh.V(i).y;
-	//	Vertices[i].z = mesh.V(i).z;
-	//}
+	Effect.Create("vShader", "fShader");
 
-
-
-	// Create and compile our GLSL program from the shaders
-
-
-//	programID = LoadShaders("vShader", "fShader");
-
-	{
-		Test.CreateProgram();
-
-		if (!Test.BuildFiles("vShader", "fShader"))
-		{
-			return false;
-		}
-
-
-		if (Test.IsNull())
-			return false;
-
-
-		programID = Test.GetID();
-	}
-
-	MatrixID = glGetUniformLocation(programID, "MVP");
+	MatrixID = glGetUniformLocation(Effect.GetID(), "MVP");
 
 	Model.SetIdentity();
 	View.SetView(cy::Point3<float>(0, -30, 50), cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
 	Projection.SetPerspective(1, 1.0f, 0.1f, 100.0f);
-	MVP = Projection * View * Model;
 
-
-	//static const GLfloat g_vertex_buffer_data[] = { 
-	//   -1.0f, -1.0f, 0.0f,
-	//	1.0f, -1.0f, 0.0f,
-	//	0.0f,  1.0f, 0.0f,
-	//};
-
-
-	std::vector<cy::Point3f> g_vertex_buffer_data;
-
-//	cy::Point3f* g_vertex_buffer_data = new cy::Point3f[mesh.NV()];
-
-	for (int i = 0; i < mesh.NV(); i++)
-	{
-		g_vertex_buffer_data.push_back(mesh.V(i));
-	}
-
-
-
-	// This will identify our vertex buffer
-
-	// Generate 1 buffer, put the resulting identifier in vertexbuffer
-	glGenBuffers(1, &vertexbuffer);
-	// The following commands will talk about our 'vertexbuffer' buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	// Give our vertices to OpenGL.
-
-	const auto bufferSize = mesh.NV() * sizeof(cy::Point3f);
-
-	glBufferData(GL_ARRAY_BUFFER, bufferSize, &g_vertex_buffer_data[0].x, GL_STATIC_DRAW);
-
-//	delete[] g_vertex_buffer_data;
 
 	return true;
 }
@@ -127,10 +57,9 @@ void Update()
 	static float delta = 0.01f;
 
 //	Green += delta;
-
 //	delta = (Green >= 1.0) ? -0.01f : (Green <= 0.0) ? 0.01f : delta;
 
-
+	MVP = Projection * View * Model;
 
 	glClearColor(0.0f, Green, 0.0f, 0.0f);
 
@@ -152,30 +81,70 @@ void Input(unsigned char i_Key, int i_MouseX, int i_MouseY)
 	}
 }
 
+
+bool LeftClicked = false;
+bool RightClicked = false;
+
+void MouseClicks(int button, int state, int x, int y)
+{
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		LeftClicked = true;
+	}
+	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		LeftClicked = false;
+	}
+
+	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+	{
+		RightClicked = true;
+	}
+	else if(button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
+	{
+		RightClicked = false;
+	}
+
+	std::cout << LeftClicked << " " << RightClicked << std::endl;
+
+}
+
+void myMouseMove(int x, int y)
+{
+	std::cout << LeftClicked << " " << RightClicked << std::endl;
+
+	static int last_x = x;
+	static int last_y = y;
+	static float last_angle = x;
+
+	if (RightClicked)
+	{
+		float delta = 0.1f * ((last_x - x) + (last_y - y));
+
+		View.AddTrans(cy::Point3f(0, 0, delta));
+	}
+	
+	if (LeftClicked);
+	{
+		float delta = 0.0001f * (last_angle - x);
+	//	View *= cy::Matrix4<float>::MatrixRotationZ(delta);
+	}
+
+	last_x = x;
+	last_y = y;
+}
+
 void Render()
 {
     //Clear color buffer
     glClear( GL_COLOR_BUFFER_BIT );
 
-	glUseProgram(programID);
+	glUseProgram(Effect.GetID());
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0]);
 
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glVertexAttribPointer(
-		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		0,                  // stride
-		(void*)0            // array buffer offset
-	);
-	// Draw the triangle !
-
-	glDrawArrays(GL_POINTS, 0, mesh.NV()); // Starting from vertex 0; 3 vertices total -> 1 triangle
+	Teapot.Render();
 
 	glDisableVertexAttribArray(0);
-
 
     //Update screen
     glutSwapBuffers();

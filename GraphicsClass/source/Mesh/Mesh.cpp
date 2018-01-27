@@ -2,6 +2,11 @@
 
 #include <cassert>
 
+Lai::Mesh::~Mesh()
+{
+	glDeleteBuffers(1, &m_vertex_buffer_Id);
+}
+
 bool Lai::Mesh::Create(std::string i_fileName)
 {
 	if (!m_Mesh.LoadFromFileObj(i_fileName.c_str()))
