@@ -192,7 +192,11 @@ void Render()
     //Clear color buffer
     glClear( GL_COLOR_BUFFER_BIT );
 
+	glEnableVertexAttribArray(0);
+
 	glUseProgram(Effect.GetID());
+	glBindVertexArray(VAO);
+
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0]);
 
 	Teapot.Render();
