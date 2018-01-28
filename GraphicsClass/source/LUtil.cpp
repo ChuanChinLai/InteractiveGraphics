@@ -48,8 +48,11 @@ bool InitGL()
 	glBindVertexArray(VAO);
 
 	Teapot.Create("teapot.obj");
+
 	Effect.Create("vShader", "fShader");
+
 	MatrixID = glGetUniformLocation(Effect.GetID(), "MVP");
+
 
 	Model.SetIdentity();
 
