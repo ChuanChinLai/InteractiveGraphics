@@ -21,21 +21,28 @@ bool Lai::Mesh::Create(std::string i_fileName)
 		m_vertex_buffer_data.push_back(m_Mesh.V(i));
 	}
 
-	glGenBuffers(1, &m_vertex_buffer_Id);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer_Id);
+	{
+		glGenVertexArrays(1, &m_vertex_Array_Id);
+		glBindVertexArray(m_vertex_Array_Id);
+	}
 
-	const auto bufferSize = m_Mesh.NV() * sizeof(cy::Point3f);
-	glBufferData(GL_ARRAY_BUFFER, bufferSize, &m_vertex_buffer_data[0].x, GL_STATIC_DRAW);
 
+	{
+		glGenBuffers(1, &m_vertex_buffer_Id);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer_Id);
+		const auto bufferSize = m_Mesh.NV() * sizeof(cy::Point3f);
+		glBufferData(GL_ARRAY_BUFFER, bufferSize, &m_vertex_buffer_data[0].x, GL_STATIC_DRAW);
+	}
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+	
 	return true;
 }
 
 void Lai::Mesh::Render()
 {
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer_Id);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
+	glBindVertexArray(m_vertex_Array_Id);
 	glDrawArrays(GL_POINTS, 0, m_Mesh.NV());
 }
