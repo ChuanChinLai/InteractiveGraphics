@@ -2,10 +2,13 @@
 
 #include "LOpenGL.h"
 #include <stdio.h>
+#include <string>
 
 //Screen Constants
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+
+extern std::string OBJ_NAME;
 
 
 bool InitGL();

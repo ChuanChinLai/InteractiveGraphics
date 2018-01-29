@@ -12,6 +12,8 @@
 #include <fstream>
 #include <sstream>  
 
+std::string OBJ_NAME = "teapot.obj";
+
 Lai::Mesh Teapot;
 Lai::Effect Effect;
 
@@ -43,7 +45,7 @@ bool InitGL()
 		return false;
 	}
 
-	Teapot.Create("teapot.obj");
+	Teapot.Create(OBJ_NAME);
 
 	Effect.Create("vShader", "fShader");
 

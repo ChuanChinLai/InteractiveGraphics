@@ -1,7 +1,14 @@
 #include "LUtil.h"
+#include <iostream>
 
-int main( int argc, char* args[] )
+int main(int argc, char* args[])
 {
+	if (argc >= 2)
+	{
+		OBJ_NAME = args[1];
+	}
+
+
 	//Initialize FreeGLUT and Create Window
 	glutInit( &argc, args );
 
