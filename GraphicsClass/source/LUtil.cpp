@@ -21,7 +21,7 @@ Lai::Effect Effect;
 GLuint ModelID;
 GLuint ViewID;
 GLuint ProjectionID;
-
+GLuint LightID;
 
 cy::Matrix4<float> Model;
 cy::Matrix4<float> View;
@@ -47,6 +47,10 @@ bool InitGL()
 		return false;
 	}
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
+
 	Teapot.Create(OBJ_NAME);
 
 	Effect.Create("vShader", "fShader");
@@ -54,6 +58,8 @@ bool InitGL()
 	ModelID		 = glGetUniformLocation(Effect.GetID(), "M");
 	ViewID		 = glGetUniformLocation(Effect.GetID(), "V");
 	ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
+
+	LightID		 = glGetUniformLocation(Effect.GetID(), "LightPosition_worldspace");
 
 	Model.SetIdentity();
 
@@ -188,13 +194,19 @@ void myMouseMove(int x, int y)
 void Render()
 {
     //Clear color buffer
-    glClear( GL_COLOR_BUFFER_BIT );
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+	//glCullFace(GL_BACK);
 	glUseProgram(Effect.GetID());
 
 	glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0]);
 	glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
 	glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
+
+	cy::Point3f lightPos(0, -30, 50);
+	glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
 
 
 	Teapot.Render();
