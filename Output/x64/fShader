@@ -1,12 +1,20 @@
 #version 330 core
 
+in vec3 Normal_cameraspace;
+
 // Ouput data
 out vec3 color;
 
 void main()
 {
-
+	vec3 n = normalize( Normal_cameraspace );
+	
+	float cosTheta = clamp( dot(n, vec3(1, 0, 1)), 0, 1);
+		
 	// Output color = yellow 
-	color = vec3(1,1,0);
+//	color = vec3(1,1,0);
+	
 
+//	color = vec3(1,1,1) * cosTheta;
+	color = vec3(1,1,1) * n;
 }

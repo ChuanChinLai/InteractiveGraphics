@@ -17,13 +17,15 @@ std::string OBJ_NAME = "teapot.obj";
 Lai::Mesh Teapot;
 Lai::Effect Effect;
 
-GLuint MatrixID;
+
+GLuint ModelID;
+GLuint ViewID;
+GLuint ProjectionID;
 
 
 cy::Matrix4<float> Model;
 cy::Matrix4<float> View;
 cy::Matrix4<float> Projection;
-cy::Matrix4<float> MVP;
 
 
 bool LeftClicked = false;
@@ -49,8 +51,9 @@ bool InitGL()
 
 	Effect.Create("vShader", "fShader");
 
-	MatrixID = glGetUniformLocation(Effect.GetID(), "MVP");
-
+	ModelID		 = glGetUniformLocation(Effect.GetID(), "M");
+	ViewID		 = glGetUniformLocation(Effect.GetID(), "V");
+	ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
 
 	Model.SetIdentity();
 
@@ -69,8 +72,6 @@ bool InitGL()
 	View.SetView(cy::Point3<float>(0, -30, 50), cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
 
 	Projection.SetPerspective(1, 1.0f, 0.1f, 100.0f);
-
-	MVP = Projection * View * Model;
 
 	return true;
 }
@@ -93,7 +94,6 @@ void Update()
 		View.AddTrans(cy::Point3f(0, 0, mouseXDelta));
 	}
 
-	MVP = Projection * View * Model;
 
 	glClearColor(0.0f, Green, 0.0f, 0.0f);
 
@@ -191,7 +191,11 @@ void Render()
     glClear( GL_COLOR_BUFFER_BIT );
 
 	glUseProgram(Effect.GetID());
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0]);
+
+	glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0]);
+	glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
+	glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
+
 
 	Teapot.Render();
 
