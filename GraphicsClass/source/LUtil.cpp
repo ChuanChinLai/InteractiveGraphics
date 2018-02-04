@@ -21,7 +21,10 @@ Lai::Effect Effect;
 GLuint ModelID;
 GLuint ViewID;
 GLuint ProjectionID;
+
 GLuint LightID;
+cy::Point3f LightPos(0, 0, 30);
+
 
 cy::Matrix4<float> Model;
 cy::Matrix4<float> View;
@@ -74,8 +77,8 @@ bool InitGL()
 		Model.AddTrans(-Translate);
 	}
 
-
-	View.SetView(cy::Point3<float>(0, -30, 50), cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
+	cy::Point3f CameraPos(0, 0, 50);
+	View.SetView(CameraPos, cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
 
 	Projection.SetPerspective(1, 1.0f, 0.1f, 100.0f);
 
@@ -88,6 +91,7 @@ void Update()
 
 //	Green += delta;
 //	delta = (Green >= 1.0) ? -0.01f : (Green <= 0.0) ? 0.01f : delta;
+
 
 	if (LeftClicked)
 	{
@@ -205,9 +209,8 @@ void Render()
 	glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
 	glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
 
-	cy::Point3f lightPos(0, -30, 50);
-	glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
 
+	glUniform3fv(LightID, 1, &LightPos[0]);
 
 	Teapot.Render();
 
