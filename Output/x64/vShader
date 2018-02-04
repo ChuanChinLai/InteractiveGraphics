@@ -7,7 +7,6 @@ layout(location = 1) in vec3 vertexNormal_modelspace;
 out vec3 Normal_cameraspace;
 out vec3 LightDirection_cameraspace;
 out vec3 CameraDirection_cameraspace;
-out vec3 CameraPosition_cameraspace;
 
 uniform vec3 LightPosition_worldspace;
 

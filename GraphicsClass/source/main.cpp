@@ -26,8 +26,11 @@ int main(int argc, char* args[])
 	//Set rendering function
 	glutDisplayFunc(Render);
 	glutIdleFunc(Update);
+
 	glutKeyboardFunc(Input);
+
 	glutSpecialFunc(SpecialInput);
+	glutSpecialUpFunc(SpecialUpInput);
 
 	glutMouseFunc(MouseClicks);
 	glutMotionFunc(myMouseMove);

@@ -23,7 +23,7 @@ GLuint ViewID;
 GLuint ProjectionID;
 
 GLuint LightID;
-cy::Point3f LightPos(0, 0, 30);
+cy::Point3f LightPos(0, 20, 30);
 
 
 cy::Matrix4<float> Model;
@@ -33,12 +33,14 @@ cy::Matrix4<float> Projection;
 
 bool LeftClicked = false;
 bool RightClicked = false;
+bool LeftCtrlPressed = false;
 
 int mouseXPos = 0;
 int mouseYPos = 0;
 
 float mouseXDelta = 0;
 float mouseYDelta = 0;
+
 
 bool InitGL()
 {
@@ -93,16 +95,21 @@ void Update()
 //	delta = (Green >= 1.0) ? -0.01f : (Green <= 0.0) ? 0.01f : delta;
 
 
-	if (LeftClicked)
+	if (LeftCtrlPressed)
+	{
+		LightPos = cy::Matrix3<float>::MatrixRotationZ(0.1f * mouseXDelta) * LightPos;
+	}
+	else if (LeftClicked)
 	{
 		View *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseXDelta);
 		View *= cy::Matrix4<float>::MatrixRotationY(0.1f * mouseYDelta);
 	}
-
-	if (RightClicked)
+	else if (RightClicked)
 	{
 		View.AddTrans(cy::Point3f(0, 0, mouseXDelta));
 	}
+
+
 
 
 	glClearColor(0.0f, Green, 0.0f, 0.0f);
@@ -123,11 +130,18 @@ void Input(unsigned char i_Key, int i_MouseX, int i_MouseY)
 
 			break;
 
+		case 114:
+
+			std::cout << "C Press" << std::endl;
+
+			break;
+
 		default:
-			std::cout << i_Key << std::endl;
+	//		std::cout << i_Key << std::endl;
 			break;
 	}
 }
+
 
 void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 {
@@ -160,12 +174,30 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 		Model.AddTrans(cy::Point3f(0, -0.1f, 0));
 		break;
 
+	case 114:
+		LeftCtrlPressed = true;
+		std::cout << "C Press" << std::endl;
+		break;
 	default:
+
 		std::cout << i_Key << std::endl;
 		break;
 	}
 }
 
+void SpecialUpInput(int i_Key, int i_MouseX, int i_MouseY)
+{
+	switch (i_Key)
+	{
+	case 114:
+		LeftCtrlPressed = false;
+		std::cout << "C Release" << std::endl;
+		break;
+
+	default:
+		break;
+	}
+}
 
 
 
