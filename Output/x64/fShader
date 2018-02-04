@@ -32,7 +32,8 @@ void main()
 	vec3 MaterialSpecularColor = vec3(1, 1, 1);
 	
 
-
+//	color = N;
+//	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm;	
+//	color = MaterialSpecularColor * specularTerm;	
 	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
-
 }
