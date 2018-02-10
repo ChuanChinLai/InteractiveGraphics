@@ -24,7 +24,7 @@ GLuint ViewID;
 GLuint ProjectionID;
 
 GLuint LightID;
-cy::Point3f LightPos(0, 20, 30);
+cy::Point3f LightPos(0, 50, 50);
 
 
 cy::Matrix4<float> Model;
@@ -32,8 +32,8 @@ cy::Matrix4<float> View;
 cy::Matrix4<float> Projection;
 
 
-GLuint Texture;
-GLuint TextureID;
+GLuint Texture_Brick_ID;
+GLuint Texture_Brick_Specular_ID;
 
 
 bool LeftClicked = false;
@@ -92,28 +92,52 @@ bool InitGL()
 
 	{
 		
-		cy::TriMesh::Mtl test = Teapot.m_Mesh.M(0);
+		cy::TriMesh::Mtl material = Teapot.m_Mesh.M(0);
 
-
-		std::vector<unsigned char> image;
-		unsigned width, height;
-		unsigned error = lodepng::decode(image, width, height, "brick.png", LodePNGColorType::LCT_RGB);
-		
-		// If there's an error, display it.
-		if (error != 0)
 		{
-			std::cout << "error " << error << ": " << lodepng_error_text(error) << std::endl;
-			return 1;
+			std::vector<unsigned char> image;
+			unsigned width, height;
+			unsigned error = lodepng::decode(image, width, height, material.map_Kd.data, LodePNGColorType::LCT_RGB);
+
+			// If there's an error, display it.
+			if (error != 0)
+			{
+				std::cout << "error " << error << ": " << lodepng_error_text(error) << std::endl;
+				return false;
+			}
+
+			glGenTextures(1, &Texture_Brick_ID);
+
+			glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
 		}
 
-		glGenTextures(1, &Texture);
+		{
+			std::vector<unsigned char> image;
+			unsigned width, height;
+			unsigned error = lodepng::decode(image, width, height, material.map_Ks.data, LodePNGColorType::LCT_RGB);
 
-		glBindTexture(GL_TEXTURE_2D, Texture);
+			// If there's an error, display it.
+			if (error != 0)
+			{
+				std::cout << "error " << error << ": " << lodepng_error_text(error) << std::endl;
+				return false;
+			}
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glGenTextures(1, &Texture_Brick_Specular_ID);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
+			glBindTexture(GL_TEXTURE_2D, Texture_Brick_Specular_ID);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
+		}
+
 
 	}
 
@@ -277,9 +301,11 @@ void Render()
 	glUniform3fv(LightID, 1, &LightPos[0]);
 
 
-	// Bind our texture in Texture Unit 0
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, Texture);
+	glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, Texture_Brick_Specular_ID);
 
 
 	Teapot.Render();

@@ -9,7 +9,8 @@ in vec3 CameraDirection_cameraspace;
 // Ouput data
 out vec3 color;
 
-uniform sampler2D TextureSampler;
+uniform sampler2D Texture_Brick;
+uniform sampler2D Texture_Brick_specular;
 
 void main()
 {
@@ -22,7 +23,7 @@ void main()
 	
 	//
 	float diffuseTerm = clamp( dot(N, L), 0, 1 );
-	vec3 MaterialDiffuseColor = texture( TextureSampler, UV ).rgb;
+	vec3 MaterialDiffuseColor = texture( Texture_Brick, UV ).rgb;
 	
 	
 	//
@@ -33,12 +34,13 @@ void main()
 	float Shininess = 50;
     vec3 H = normalize(L + V);
     float specularTerm = pow(clamp(dot(N, H), 0, 1), Shininess);
-	vec3 MaterialSpecularColor = vec3(1, 1, 1);
+//	vec3 MaterialSpecularColor = vec3(1, 1, 1);
+	vec3 MaterialSpecularColor = texture( Texture_Brick_specular, UV ).rgb;
 	
-	color = MaterialDiffuseColor;	
+//	color = MaterialDiffuseColor;	
 	
 //	color = N;
 //	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm;	
 //	color = MaterialSpecularColor * specularTerm;	
-//	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
+	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
 }
