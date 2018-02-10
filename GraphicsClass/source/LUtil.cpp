@@ -6,6 +6,7 @@
 #include <cyCode\cyTriMesh.h>
 #include <cyCode\cyGL.h>
 #include <cyCode\cyMatrix.h>
+#include <LodePNG\lodepng.h>
 
 #include <vector>
 #include <iostream>
@@ -31,6 +32,10 @@ cy::Matrix4<float> View;
 cy::Matrix4<float> Projection;
 
 
+GLuint Texture;
+GLuint TextureID;
+
+
 bool LeftClicked = false;
 bool RightClicked = false;
 bool LeftCtrlPressed = false;
@@ -54,6 +59,7 @@ bool InitGL()
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_2D);
 
 
 	Teapot.Create(OBJ_NAME);
@@ -63,8 +69,9 @@ bool InitGL()
 	ModelID		 = glGetUniformLocation(Effect.GetID(), "M");
 	ViewID		 = glGetUniformLocation(Effect.GetID(), "V");
 	ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
-
 	LightID		 = glGetUniformLocation(Effect.GetID(), "LightPosition_worldspace");
+
+
 
 	Model.SetIdentity();
 
@@ -81,8 +88,34 @@ bool InitGL()
 
 	cy::Point3f CameraPos(0, 0, 50);
 	View.SetView(CameraPos, cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
-
 	Projection.SetPerspective(1, 1.0f, 0.1f, 100.0f);
+
+	{
+		
+		cy::TriMesh::Mtl test = Teapot.m_Mesh.M(0);
+
+
+		std::vector<unsigned char> image;
+		unsigned width, height;
+		unsigned error = lodepng::decode(image, width, height, "brick.png", LodePNGColorType::LCT_RGB);
+		
+		// If there's an error, display it.
+		if (error != 0)
+		{
+			std::cout << "error " << error << ": " << lodepng_error_text(error) << std::endl;
+			return 1;
+		}
+
+		glGenTextures(1, &Texture);
+
+		glBindTexture(GL_TEXTURE_2D, Texture);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
+
+	}
 
 	return true;
 }
@@ -241,8 +274,13 @@ void Render()
 	glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
 	glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
 
-
 	glUniform3fv(LightID, 1, &LightPos[0]);
+
+
+	// Bind our texture in Texture Unit 0
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, Texture);
+
 
 	Teapot.Render();
 

@@ -25,17 +25,11 @@
     <Filter Include="Effect">
       <UniqueIdentifier>{f30fc441-8987-41e1-91e5-c369a02d61e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Externals\Source Files">
+      <UniqueIdentifier>{db30445f-d114-478c-bc31-954ee22ab33b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Externals\cyCodeBase\cyTriMesh.h">
-      <Filter>Externals\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Externals\cyCodeBase\cyMatrix.h">
-      <Filter>Externals\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Externals\cyCodeBase\cyGL.h">
-      <Filter>Externals\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\Mesh\Mesh.h">
       <Filter>Mesh</Filter>
     </ClInclude>
@@ -47,6 +41,21 @@
     </ClInclude>
     <ClInclude Include="source\Effect\Effect.h">
       <Filter>Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\LodePNG\lodepng.h">
+      <Filter>Externals\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\cyCode\cyGL.h">
+      <Filter>Externals\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\cyCode\cyMatrix.h">
+      <Filter>Externals\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\cyCode\cyPoint.h">
+      <Filter>Externals\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\tool\objloader.hpp">
+      <Filter>Externals\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +70,12 @@
     </ClCompile>
     <ClCompile Include="source\Effect\Effect.cpp">
       <Filter>Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Externals\LodePNG\lodepng.cpp">
+      <Filter>Externals\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Externals\tool\objloader.cpp">
+      <Filter>Externals\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 #include "Mesh.h"
-
+#include "../../../Externals/tool/objloader.hpp"
 #include <cassert>
 
 Lai::Mesh::~Mesh()
@@ -19,6 +19,7 @@ bool Lai::Mesh::Create(std::string i_fileName)
 	m_Mesh.ComputeNormals();
 
 	std::cout << m_Mesh.NV() << std::endl;
+	std::cout << m_Mesh.NVT() << std::endl;
 	std::cout << m_Mesh.NF() << std::endl;
 	std::cout << m_Mesh.NVN() << std::endl;
 
@@ -28,6 +29,7 @@ bool Lai::Mesh::Create(std::string i_fileName)
 		glBindVertexArray(m_vertex_Array_Id);
 	}
 	
+
 	//Vertex Buffer
 	{
 		for (int i = 0; i < m_Mesh.NV(); i++)
@@ -81,7 +83,36 @@ bool Lai::Mesh::Create(std::string i_fileName)
 			glEnableVertexAttribArray(1);
 		}
 	}
-	
+
+
+	//UV
+	{
+		for (int i = 0; i < m_Mesh.NF(); i++)
+		{
+			cy::TriMesh::TriFace Face = m_Mesh.FT(i);
+
+			cy::Point3f v1 = m_Mesh.VT(Face.v[0]);
+			cy::Point3f v2 = m_Mesh.VT(Face.v[1]);
+			cy::Point3f v3 = m_Mesh.VT(Face.v[2]);
+
+			m_UV_buffer_data.push_back(cyPoint2f(v1));
+			m_UV_buffer_data.push_back(cyPoint2f(v2));
+			m_UV_buffer_data.push_back(cyPoint2f(v3));
+		}
+
+		{
+			glGenBuffers(1, &m_UV_buffer_Id);
+			glBindBuffer(GL_ARRAY_BUFFER, m_UV_buffer_Id);
+
+			const auto bufferSize = m_UV_buffer_data.size() * sizeof(cyPoint2f);
+			glBufferData(GL_ARRAY_BUFFER, bufferSize, m_UV_buffer_data.data(), GL_STATIC_DRAW);
+
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(cyPoint2f), (void*)0);
+			glEnableVertexAttribArray(2);
+		}
+	}
+
+
 	return true;
 }
 

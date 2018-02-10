@@ -1,11 +1,15 @@
 #version 330 core
 
+in vec2 UV;
+
 in vec3 Normal_cameraspace;
 in vec3 LightDirection_cameraspace;
 in vec3 CameraDirection_cameraspace;
 
 // Ouput data
 out vec3 color;
+
+uniform sampler2D TextureSampler;
 
 void main()
 {
@@ -18,11 +22,11 @@ void main()
 	
 	//
 	float diffuseTerm = clamp( dot(N, L), 0, 1 );
-	vec3 MaterialDiffuseColor = vec3(1, 0, 0);
+	vec3 MaterialDiffuseColor = texture( TextureSampler, UV ).rgb;
 	
 	
 	//
-	vec3 MaterialAmbientColor = vec3(0.1, 0.1, 0.1);
+	vec3 MaterialAmbientColor = MaterialDiffuseColor;
 
 	
 	//
@@ -31,9 +35,10 @@ void main()
     float specularTerm = pow(clamp(dot(N, H), 0, 1), Shininess);
 	vec3 MaterialSpecularColor = vec3(1, 1, 1);
 	
-
+	color = MaterialDiffuseColor;	
+	
 //	color = N;
 //	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm;	
 //	color = MaterialSpecularColor * specularTerm;	
-	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
+//	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
 }

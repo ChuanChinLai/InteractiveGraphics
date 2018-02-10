@@ -24,14 +24,17 @@ namespace Lai
 
 		GLuint m_vertex_buffer_Id = 0;
 		GLuint m_index_buffer_Id  = 0;
-
 		GLuint m_normal_buffer_Id = 0;
+
+		GLuint m_UV_buffer_Id = 0;
 
 		std::vector<cy::Point3f> m_vertex_buffer_data;
 		std::vector<cy::TriMesh::TriFace> m_index_buffer_data;
 
 
 		std::vector<cy::Point3f> normals;
+
+		std::vector<cyPoint2f> m_UV_buffer_data;
 
 	};
 }

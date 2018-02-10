@@ -150,15 +150,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Externals\cyCodeBase\cyGL.h" />
-    <ClInclude Include="..\Externals\cyCodeBase\cyMatrix.h" />
-    <ClInclude Include="..\Externals\cyCodeBase\cyTriMesh.h" />
+    <ClInclude Include="..\Externals\cyCode\cyGL.h" />
+    <ClInclude Include="..\Externals\cyCode\cyMatrix.h" />
+    <ClInclude Include="..\Externals\cyCode\cyPoint.h" />
+    <ClInclude Include="..\Externals\LodePNG\lodepng.h" />
+    <ClInclude Include="..\Externals\tool\objloader.hpp" />
     <ClInclude Include="source\Effect\Effect.h" />
     <ClInclude Include="source\LOpenGL.h" />
     <ClInclude Include="source\LUtil.h" />
     <ClInclude Include="source\Mesh\Mesh.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Externals\LodePNG\lodepng.cpp" />
+    <ClCompile Include="..\Externals\tool\objloader.cpp" />
     <ClCompile Include="source\Effect\Effect.cpp" />
     <ClCompile Include="source\LUtil.cpp" />
     <ClCompile Include="source\main.cpp" />
