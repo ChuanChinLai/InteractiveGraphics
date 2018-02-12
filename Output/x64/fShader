@@ -31,7 +31,7 @@ void main()
 
 	
 	//
-	float Shininess = 50;
+	float Shininess = 20;
     vec3 H = normalize(L + V);
     float specularTerm = pow(clamp(dot(N, H), 0, 1), Shininess);
 //	vec3 MaterialSpecularColor = vec3(1, 1, 1);
@@ -41,6 +41,6 @@ void main()
 	
 //	color = N;
 //	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm;	
-//	color = MaterialSpecularColor * specularTerm;	
+//	color = MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
 	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
 }

@@ -35,6 +35,10 @@ cy::Matrix4<float> Projection;
 GLuint Texture_Brick_ID;
 GLuint Texture_Brick_Specular_ID;
 
+GLuint Texture_Brick_Location_ID;
+GLuint Texture_Brick_Specular_Location_ID;
+
+
 
 bool LeftClicked = false;
 bool RightClicked = false;
@@ -70,6 +74,10 @@ bool InitGL()
 	ViewID		 = glGetUniformLocation(Effect.GetID(), "V");
 	ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
 	LightID		 = glGetUniformLocation(Effect.GetID(), "LightPosition_worldspace");
+
+
+	Texture_Brick_Location_ID = glGetUniformLocation(Effect.GetID(), "Texture_Brick");
+	Texture_Brick_Specular_Location_ID = glGetUniformLocation(Effect.GetID(), "Texture_Brick_specular");
 
 
 
@@ -300,6 +308,9 @@ void Render()
 
 	glUniform3fv(LightID, 1, &LightPos[0]);
 
+
+	glUniform1i(Texture_Brick_Location_ID, 0);
+	glUniform1i(Texture_Brick_Specular_Location_ID, 1);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
