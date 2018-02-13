@@ -18,7 +18,7 @@ void main()
 	vec3 L = normalize( LightDirection_cameraspace );
 	vec3 V = normalize( CameraDirection_cameraspace );
 	
-	vec3 LightColor = vec3(1, 1, 1);
+	vec3 LightColor = vec3(0.9, 0.9, 0.9);
 	float LightPower = 5.0f;
 	
 	//
@@ -41,6 +41,7 @@ void main()
 	
 //	color = N;
 //	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm;	
-//	color = MaterialSpecularColor * specularTerm;	
-	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
+//	color = MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
+	color = 0.2 * MaterialAmbientColor + LightColor*(MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm);	
+//	color = vec4(0);
 }
