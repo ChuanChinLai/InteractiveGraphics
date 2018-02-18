@@ -39,7 +39,7 @@ void main()
 	
 //	color = MaterialDiffuseColor;	
 	
-//	color = N;
+//	color = texture( Texture_Brick, UV ).rgb;
 //	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm;	
 //	color = MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm;	
 	color = 0.2 * MaterialAmbientColor + LightColor*(MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm);	

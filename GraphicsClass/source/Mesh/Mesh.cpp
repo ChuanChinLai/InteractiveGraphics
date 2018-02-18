@@ -18,11 +18,6 @@ bool Lai::Mesh::Create(std::string i_fileName)
 
 	m_Mesh.ComputeNormals();
 
-	std::cout << m_Mesh.NV() << std::endl;
-	std::cout << m_Mesh.NVT() << std::endl;
-	std::cout << m_Mesh.NF() << std::endl;
-	std::cout << m_Mesh.NVN() << std::endl;
-
 
 	{
 		glGenVertexArrays(1, &m_vertex_Array_Id);

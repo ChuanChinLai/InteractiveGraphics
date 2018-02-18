@@ -25,13 +25,13 @@ namespace Lai
 
 		cy::TriMesh m_Mesh;
 
-	private:
-
-		GLuint m_vertex_Array_Id = 0;
+		std::vector<VertexData> m_vertex_buffer_data;
 
 		GLuint m_vertex_buffer_Id = 0;
+		GLuint m_vertex_Array_Id = 0;
 
-		std::vector<VertexData> m_vertex_buffer_data;
+	private:
+
 
 	};
 }
