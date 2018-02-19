@@ -35,6 +35,12 @@ cy::Matrix4<float> View;
 cy::Matrix4<float> Projection;
 
 
+cy::Matrix4<float> Model_RTT;
+cy::Matrix4<float> View_RTT;
+cy::Matrix4<float> Projection_RTT;
+
+
+
 GLuint Texture_Brick_ID;
 GLuint Texture_Brick_Specular_ID;
 
@@ -51,6 +57,8 @@ GLuint Quad_Vertex_ID;
 bool LeftClicked = false;
 bool RightClicked = false;
 bool LeftCtrlPressed = false;
+bool LeftAltPressed = false;
+
 
 int mouseXPos = 0;
 int mouseYPos = 0;
@@ -99,10 +107,9 @@ bool InitGL()
 	cy::Point3f CameraPos(0, 0, 30);
 
 	View.SetView(CameraPos, cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
+
 	Projection.SetPerspective(1, 1.0f, 0.1f, 100.0f);
 
-
-	cy::Matrix4<float> MVP = Projection * View * Model;
 
 
 	{
@@ -157,6 +164,10 @@ bool InitGL()
 	//RTT specific:
 	{
 		RT.Initialize(true, 3, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+		Model_RTT.SetIdentity();
+		View_RTT = View;
+		Projection_RTT = Projection;
 	}
 
 	{
@@ -222,6 +233,18 @@ void Update()
 	if (LeftCtrlPressed)
 	{
 		LightPos = cy::Matrix3<float>::MatrixRotationZ(0.1f * mouseXDelta) * LightPos;
+	}
+	if (LeftAltPressed)
+	{
+		if (LeftClicked)
+		{
+			View_RTT *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseXDelta);
+			View_RTT *= cy::Matrix4<float>::MatrixRotationY(0.1f * mouseYDelta);
+		}
+		else if (RightClicked)
+		{
+			View_RTT.AddTrans(cy::Point3f(0, 0, mouseXDelta));
+		}
 	}
 	else if (LeftClicked)
 	{
@@ -299,6 +322,10 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 		LeftCtrlPressed = true;
 		std::cout << "C Press" << std::endl;
 		break;
+
+	case 116:
+		LeftAltPressed = true;
+		break;
 	default:
 
 		std::cout << i_Key << std::endl;
@@ -313,6 +340,10 @@ void SpecialUpInput(int i_Key, int i_MouseX, int i_MouseY)
 	case 114:
 		LeftCtrlPressed = false;
 		std::cout << "C Release" << std::endl;
+		break;
+
+	case 116:
+		LeftAltPressed = false;
 		break;
 
 	default:
@@ -354,7 +385,6 @@ void Render()
 	RT.Bind();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 	glUseProgram(Effect.GetID());
 
 	ModelID = glGetUniformLocation(Effect.GetID(), "M");
@@ -380,7 +410,7 @@ void Render()
 
 	RT.Unbind();
 
-	///*==================================*/
+	/*==================================*/
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -391,9 +421,9 @@ void Render()
 	ViewID	= glGetUniformLocation(EffectRTT.GetID(), "V");
 	ProjectionID = glGetUniformLocation(EffectRTT.GetID(), "P");
 
-	glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0]);
-	glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
-	glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
+	glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_RTT[0]);
+	glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View_RTT[0]);
+	glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection_RTT[0]);
 
 	glActiveTexture(GL_TEXTURE0);
 	RT.BindTexture();
