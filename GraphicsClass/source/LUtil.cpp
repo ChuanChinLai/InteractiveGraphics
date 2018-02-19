@@ -165,6 +165,10 @@ bool InitGL()
 	{
 		RT.Initialize(true, 3, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+		RT.SetTextureFilteringMode(GL_LINEAR, 0);
+		RT.SetTextureMaxAnisotropy();
+		RT.BuildTextureMipmaps();
+
 		Model_RTT.SetIdentity();
 		View_RTT = View;
 		Projection_RTT = Projection;
