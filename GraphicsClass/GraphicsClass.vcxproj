@@ -156,17 +156,21 @@
     <ClInclude Include="..\Externals\LodePNG\lodepng.h" />
     <ClInclude Include="..\Externals\tool\objloader.hpp" />
     <ClInclude Include="source\Effect\Effect.h" />
+    <ClInclude Include="source\Image\Image.h" />
     <ClInclude Include="source\LOpenGL.h" />
     <ClInclude Include="source\LUtil.h" />
     <ClInclude Include="source\Mesh\Mesh.h" />
+    <ClInclude Include="source\Mesh\Skybox.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Externals\LodePNG\lodepng.cpp" />
     <ClCompile Include="..\Externals\tool\objloader.cpp" />
     <ClCompile Include="source\Effect\Effect.cpp" />
+    <ClCompile Include="source\Image\Image.cpp" />
     <ClCompile Include="source\LUtil.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\Mesh\Mesh.cpp" />
+    <ClCompile Include="source\Mesh\Skybox.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

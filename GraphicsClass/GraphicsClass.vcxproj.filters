@@ -28,6 +28,9 @@
     <Filter Include="Externals\Source Files">
       <UniqueIdentifier>{db30445f-d114-478c-bc31-954ee22ab33b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Image">
+      <UniqueIdentifier>{39c0ad51-95cd-451e-ba81-cc0b5752f5b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Mesh\Mesh.h">
@@ -57,6 +60,12 @@
     <ClInclude Include="..\Externals\tool\objloader.hpp">
       <Filter>Externals\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\Mesh\Skybox.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Image\Image.h">
+      <Filter>Image</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\LUtil.cpp">
@@ -76,6 +85,12 @@
     </ClCompile>
     <ClCompile Include="..\Externals\tool\objloader.cpp">
       <Filter>Externals\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Mesh\Skybox.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Image\Image.cpp">
+      <Filter>Image</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
