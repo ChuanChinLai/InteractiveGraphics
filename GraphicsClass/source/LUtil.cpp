@@ -39,9 +39,8 @@ cy::Matrix4<float> Projection;
 
 
 cy::Matrix4<float> Model_RTT;
-cy::Matrix4<float> View_RTT;
-cy::Matrix4<float> Projection_RTT;
 
+cy::Matrix4<float> Model_SKY;
 
 
 GLuint Texture_Brick_ID;
@@ -107,17 +106,14 @@ bool InitGL()
 		cy::Point3<float> Translate = (min + max) / 2;
 
 		Model.AddTrans(-Translate);
+		Model.AddTrans(cy::Point3<float>(0, 0, -50));
+		Model *= cy::Matrix4<float>::MatrixRotationX(5);
 	}
 
 
-//	cy::Point3f CameraPos(0, 0, 0);
-
-//	View.SetView(CameraPos, cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
-
-	View.SetIdentity();
-
+	cy::Point3f CameraPos(0, 0, 0);
+	View.SetView(CameraPos, cy::Point3<float>(0, 0,-10), cy::Point3<float>(0, 1, 0));
 	Projection.SetPerspective(1, 1.0f, 0.1f, 100.0f);
-
 
 
 	{
@@ -177,20 +173,23 @@ bool InitGL()
 		//RT.SetTextureMaxAnisotropy();
 		//RT.BuildTextureMipmaps();
 
-		//Model_RTT.SetIdentity();
-		//View_RTT = View;
-		//Projection_RTT = Projection;
+		Model_RTT.SetIdentity();
+
+		Model_RTT.SetScale(cy::Point3<float>(4, 4, 4));
+		Model_RTT.AddTrans(cy::Point3<float>(0, -5, -50));
+		Model_RTT *= cy::Matrix4<float>::MatrixRotationX(5);
+
 	}
 
 	{
 		Quad_VertexBufferData = 
 		{
-			-9.0f, -9.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0,  0.0, 0.0f,
-			 9.0f, -9.0f, 0.0f,   0.0f, 0.0f, 0.0f,   1.0,  0.0, 0.0f,
-			-9.0f,  9.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0,  1.0, 0.0f,
-			-9.0f,  9.0f, 0.0f,   0.0f, 0.0f, 0.0f,   0.0,  1.0, 0.0f,
-			 9.0f, -9.0f, 0.0f,   0.0f, 0.0f, 0.0f,   1.0,  0.0, 0.0f,
-			 9.0f,  9.0f, 0.0f,   0.0f, 0.0f, 0.0f,   1.0,  1.0, 0.0f,
+			-9.0f, -9.0f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0,  0.0, 0.0f,
+			 9.0f, -9.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0,  0.0, 0.0f,
+			-9.0f,  9.0f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0,  1.0, 0.0f,
+			-9.0f,  9.0f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0,  1.0, 0.0f,
+			 9.0f, -9.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0,  0.0, 0.0f,
+			 9.0f,  9.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0,  1.0, 0.0f,
 		};
 
 		{
@@ -234,6 +233,8 @@ bool InitGL()
 	{
 		EffectSkybox.Create("vShaderSky", "fShaderSky");
 		Skybox.Init();
+
+		Model_SKY.SetIdentity();
 	}
 
 	return true;
@@ -255,18 +256,20 @@ void Update()
 	{
 		if (LeftClicked)
 		{
-			View_RTT *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseXDelta);
-			View_RTT *= cy::Matrix4<float>::MatrixRotationY(0.1f * mouseYDelta);
+//			View_RTT *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseXDelta);
+//			View_RTT *= cy::Matrix4<float>::MatrixRotationY(0.1f * mouseYDelta);
+
+
 		}
 		else if (RightClicked)
 		{
-			View_RTT.AddTrans(cy::Point3f(0, 0, mouseXDelta));
+//			View_RTT.AddTrans(cy::Point3f(0, 0, mouseXDelta));
 		}
 	}
 	else if (LeftClicked)
 	{
-		View *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseXDelta);
-		View *= cy::Matrix4<float>::MatrixRotationY(0.1f * mouseYDelta);
+		View *= cy::Matrix4<float>::MatrixRotationX(0.1f * mouseYDelta);
+		View *= cy::Matrix4<float>::MatrixRotationY(0.1f * mouseXDelta);
 	}
 	else if (RightClicked)
 	{
@@ -320,11 +323,11 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 		break;
 
 	case GLUT_KEY_LEFT:
-		Model.AddTrans(cy::Point3f(-0.1f, 0, 0));
+		Model *= cy::Matrix4<float>::MatrixRotationX(1);
 		break;
 
 	case GLUT_KEY_RIGHT:
-		Model.AddTrans(cy::Point3f(0.1, 0, 0));
+		Model *= cy::Matrix4<float>::MatrixRotationZ(1);
 		break;
 
 	case GLUT_KEY_UP:
@@ -406,43 +409,71 @@ void Render()
 
 	//Skybox
 	{
+		glDepthMask(GL_FALSE);
 		glUseProgram(EffectSkybox.GetID());
 
 		ModelID = glGetUniformLocation(EffectSkybox.GetID(), "M");
 		ViewID = glGetUniformLocation(EffectSkybox.GetID(), "V");
 		ProjectionID = glGetUniformLocation(EffectSkybox.GetID(), "P");
 
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0]);
+		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_SKY[0]);
 		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
 		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
 
 		glBindVertexArray(Skybox.m_vertex_Array_Id);
 		glDrawArrays(GL_TRIANGLES, 0, Skybox.m_vertex_buffer_data.size());
+		glDepthMask(GL_TRUE);
 	}
 
 
 
-	//glUseProgram(Effect.GetID());
+	//Teapot
+	{
+		glUseProgram(Effect.GetID());
 
-	//ModelID = glGetUniformLocation(Effect.GetID(), "M");
-	//ViewID	= glGetUniformLocation(Effect.GetID(), "V");
-	//ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
-
-
-	//glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0]);
-	//glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
-	//glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
-	//glUniform3fv(LightID, 1, &LightPos[0]);
+		ModelID = glGetUniformLocation(Effect.GetID(), "M");
+		ViewID = glGetUniformLocation(Effect.GetID(), "V");
+		ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
 
 
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
+		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0]);
+		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
+		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
+		glUniform3fv(LightID, 1, &LightPos[0]);
 
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, Texture_Brick_Specular_ID);
 
-//	glBindVertexArray(Teapot.m_vertex_Array_Id);
-//	glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
+
+		//	glActiveTexture(GL_TEXTURE1);
+		//	glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
+
+		//	glActiveTexture(GL_TEXTURE2);
+		//	glBindTexture(GL_TEXTURE_2D, Texture_Brick_Specular_ID);
+
+
+		glBindVertexArray(Teapot.m_vertex_Array_Id);
+		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
+	}
+
+
+
+	//Plane
+	{
+		//glUseProgram(Effect.GetID());
+
+		//ModelID = glGetUniformLocation(Effect.GetID(), "M");
+		//ViewID = glGetUniformLocation(Effect.GetID(), "V");
+		//ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
+
+
+		//glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_RTT[0]);
+		//glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
+		//glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
+
+
+		//glBindVertexArray(Quad_Array_ID);
+		//glDrawArrays(GL_TRIANGLES, 0, Quad_VertexBufferData.size());
+	}
+
 
 
 

@@ -1,6 +1,18 @@
 #include "Skybox.h"
 #include "../Image/Image.h"
 
+Lai::Skybox::~Skybox()
+{
+	delete xpos;
+	delete xneg;
+
+	delete ypos;
+	delete yneg;
+
+	delete zpos;
+	delete zneg;
+}
+
 void Lai::Skybox::Init()
 {
 	m_vertex_buffer_data =
@@ -66,14 +78,14 @@ void Lai::Skybox::Init()
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	}
 
-	Image* xpos = new Image("cubemap/cubemap_posx.png");
-	Image* xneg = new Image("cubemap/cubemap_negx.png");
+	xpos = new Image("cubemap/cubemap_posx.png");
+	xneg = new Image("cubemap/cubemap_negx.png");
 
-	Image* ypos = new Image("cubemap/cubemap_posy.png");
-	Image* yneg = new Image("cubemap/cubemap_negy.png");
+	ypos = new Image("cubemap/cubemap_posy.png");
+	yneg = new Image("cubemap/cubemap_negy.png");
 
-	Image* zpos = new Image("cubemap/cubemap_posz.png");
-	Image* zneg = new Image("cubemap/cubemap_negz.png");
+	zpos = new Image("cubemap/cubemap_posz.png");
+	zneg = new Image("cubemap/cubemap_negz.png");
 
 
 	SetupCubeMap(m_cubemap_texture, xpos, xneg, ypos, yneg, zpos, zneg);

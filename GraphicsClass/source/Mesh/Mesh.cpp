@@ -18,7 +18,6 @@ bool Lai::Mesh::Create(std::string i_fileName)
 
 	m_Mesh.ComputeNormals();
 
-
 	{
 		glGenVertexArrays(1, &m_vertex_Array_Id);
 		glBindVertexArray(m_vertex_Array_Id);
