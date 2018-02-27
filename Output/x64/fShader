@@ -9,7 +9,7 @@ in vec3 CameraDirection_cameraspace;
 in mat4 View;
 
 // Ouput data
-out vec3 color;
+out vec4 color;
 
 uniform samplerCube cubemap;
 
@@ -52,9 +52,10 @@ void main()
 
 
 	vec3 reflected = reflect(-V, N);
-	reflected = vec3(inverse(View) * vec4(reflected, 0.0));
+//	reflected = vec3(inverse(View) * vec4(reflected, 0.0));
 	vec3 Reflect_color = texture(cubemap, reflected).xyz;
 	
-	color = Blinn_color * Reflect_color;
+	color = vec4(Blinn_color * Reflect_color,1.0);
+//	color = vec4(Blinn_color, 1);
 
 }

@@ -10,6 +10,7 @@ out vec3 LightDirection_cameraspace;
 out vec3 CameraDirection_cameraspace;
 out vec2 UV;
 
+out mat4 View;
 
 
 uniform vec3 LightPosition_worldspace;
@@ -21,6 +22,7 @@ uniform mat4 P;
 void main()
 {
 	UV = vertexUV;
+	View = V;
 	
 //	gl_Position =  vec4(vertexPosition_modelspace, 1);
 	gl_Position =  P * V * M * vec4(vertexPosition_modelspace, 1);
