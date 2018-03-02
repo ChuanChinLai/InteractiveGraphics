@@ -113,6 +113,8 @@ bool InitGL()
 	View.SetIdentity();
 	View.SetView(CameraPos, cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
 
+	cyPoint3f pos = View.GetTrans();
+
 
 	Projection.SetPerspective(1, 1.0f, 0.1f, 1000.0f);
 
@@ -227,11 +229,11 @@ bool InitGL()
 
 
 	{
-		EffectSkybox.Create("vShaderSky", "fShaderSky");
-		Skybox.Init();
+		//EffectSkybox.Create("vShaderSky", "fShaderSky");
+		//Skybox.Init();
 
-		Model_SKY.SetIdentity();
-		Model_SKY.SetScale(cy::Point3<float>(10, 10, 10));
+		//Model_SKY.SetIdentity();
+		//Model_SKY.SetScale(cy::Point3<float>(10, 10, 10));
 	}
 
 	return true;
@@ -425,14 +427,7 @@ void Render()
 		ViewID = glGetUniformLocation(EffectSkybox.GetID(), "V");
 		ProjectionID = glGetUniformLocation(EffectSkybox.GetID(), "P");
 
-
-//		cyMatrix4f VIRTUAL = View.GetTrans() * cyMatrix4f::MatrixRotationY() * xrotaionmatrix(-xrotaion);
-
 		cyMatrix4f tmp = View;
-
-//		tmp *= cy::Matrix4<float>::MatrixRotationX(PI);
-//		tmp *= cy::Matrix4<float>::MatrixRotationZ(PI);
-
 		tmp[12] = tmp[13] = tmp[14] = 0;
 
 
