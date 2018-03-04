@@ -6,8 +6,6 @@ in vec3 Normal_cameraspace;
 in vec3 LightDirection_cameraspace;
 in vec3 CameraDirection_cameraspace;
 
-in mat4 View;
-
 // Ouput data
 out vec4 color;
 
