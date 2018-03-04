@@ -1,0 +1,33 @@
+#version 330 core
+
+in vec2 UV;
+
+in vec3 Normal_cameraspace;
+in vec3 LightDirection_cameraspace;
+in vec3 CameraDirection_cameraspace;
+
+in vec4 ShadowCoord;
+
+// Ouput data
+layout(location = 0) out vec3 color;
+
+
+uniform sampler2D myTextureSampler;
+uniform sampler2DShadow shadowMap;
+
+
+void main()
+{
+	vec3 LightColor = vec3(1,1,1);
+	vec3 N = normalize( Normal_cameraspace );
+	vec3 L = normalize( LightDirection_cameraspace );
+	vec3 V = normalize( CameraDirection_cameraspace );
+	
+
+	vec3 MaterialDiffuseColor = texture( myTextureSampler, UV ).rgb;
+	
+	float visibility = texture( shadowMap, vec3(ShadowCoord.xy, (ShadowCoord.z)/ShadowCoord.w) );
+
+	color = visibility * MaterialDiffuseColor * LightColor;
+//	color = texture( shadowMap, UV).rgb;
+}

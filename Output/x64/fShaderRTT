@@ -7,12 +7,12 @@ uniform sampler2D renderedTexture;
 
 void main()
 {
-	vec2 center = vec2(0, 0);
+//	vec2 center = vec2(0, 0);
 
-	vec2 window_size = textureSize(renderedTexture, 0);
+//	vec2 window_size = textureSize(renderedTexture, 0);
 
-	float u = 1 - (gl_FragCoord.x - center.x) / window_size.x;
-	float v =     (gl_FragCoord.y - center.y) / window_size.y;
+//	float u = 1 - (gl_FragCoord.x - center.x) / window_size.x;
+//	float v =     (gl_FragCoord.y - center.y) / window_size.y;
 	
 //	color = texture( renderedTexture, vec2(u, v) ).rgb;
 	color = texture( renderedTexture, UV).rgb;

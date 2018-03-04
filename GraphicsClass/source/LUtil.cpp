@@ -3,6 +3,8 @@
 #include "Mesh\Mesh.h"
 #include "Effect\Effect.h"
 #include "Mesh\Skybox.h"
+#include <glm\glm\glm.hpp>
+#include <glm\glm\gtc\matrix_transform.hpp>
 
 #include <cyCode\cyTriMesh.h>
 #include <cyCode\cyGL.h>
@@ -23,7 +25,8 @@ Lai::Mesh Teapot;
 Lai::Skybox Skybox;
 
 Lai::Effect Effect;
-Lai::Effect EffectRTT;
+Lai::Effect EffectPlane;
+Lai::Effect EffectDepth;
 Lai::Effect EffectSkybox;
 
 
@@ -31,17 +34,27 @@ GLuint ModelID;
 GLuint ViewID;
 GLuint ProjectionID;
 
+GLuint DepthBiasID;
+
 GLuint LightID;
-cy::Point3f LightPos(0, 50, 50);
-cy::Point3f CameraPos(0, 50, 50);
 
-cy::Matrix4<float> Model;
-cy::Matrix4<float> View;
-cy::Matrix4<float> Projection;
+glm::vec3 LightPos(0.0f, 40.0f, -10.0f);
+glm::vec3 CameraPos(0, 30, 50);
+
+glm::mat4 Model;
+glm::mat4 View;
+glm::mat4 Projection;
 
 
-cy::Matrix4<float> Model_RTT;
-cy::Matrix4<float> Model_SKY;
+glm::mat4 depthModel;
+glm::mat4 depthView;
+glm::mat4 depthProjection;
+
+GLuint depthMatrixID;
+
+
+glm::mat4 Model_RTT;
+glm::mat4 Model_SKY;
 
 
 GLuint Texture_Brick_ID;
@@ -50,7 +63,7 @@ GLuint Texture_Brick_Specular_ID;
 
 //Render-To-Texture
 cy::GLRenderTexture2D RT;
-
+cy::GLRenderDepth2D RD;
 
 std::vector<GLfloat> Quad_VertexBufferData;
 GLuint Quad_Array_ID;
@@ -69,6 +82,9 @@ int mouseYPos = 0;
 float mouseXDelta = 0;
 float mouseYDelta = 0;
 
+float cameraRotationX = 0;
+float cameraRotationY = 0;
+
 bool InitGL()
 {
 	//Initialize GLEW
@@ -85,6 +101,8 @@ bool InitGL()
 //	glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D);
 	glDepthFunc(GL_LEQUAL);
+//	glCullFace(GL_BACK);
+
 
 	Teapot.Create(OBJ_NAME);
 
@@ -95,9 +113,10 @@ bool InitGL()
 	ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
 	LightID		 = glGetUniformLocation(Effect.GetID(), "LightPosition_worldspace");
 
-	Model.SetIdentity();
-	Model.AddTrans(cy::Point3f(0, 15, 0));
-
+	Model = glm::mat4(1.0);
+	Model = glm::translate(Model, glm::vec3(0, 10, 0));
+//	Model.SetRotationX(-PI / 2.0f);
+//	Model.AddTrans(cy::Point3f(0, 0, 0));
 
 	{
 		Teapot.m_Mesh.ComputeBoundingBox();
@@ -107,16 +126,15 @@ bool InitGL()
 		
 		cy::Point3<float> Translate = (min + max) / 2;
 
-		Model.AddTrans(-Translate);
+//		Model.AddTrans(-Translate);
+
+		//Model = glm::translate(Model, glm::vec3(Translate.x, Translate.y, Translate.z));
+		//Model = glm::rotate(Model, -90.0f, glm::vec3(1, 0, 0));
+		//Model = glm::translate(Model, glm::vec3(-Translate.x, -Translate.y, -Translate.z));
 	}
 
-	View.SetIdentity();
-	View.SetView(CameraPos, cy::Point3<float>(0, 0, 0), cy::Point3<float>(0, 1, 0));
-
-	cyPoint3f pos = View.GetTrans();
-
-
-	Projection.SetPerspective(1, 1.0f, 0.1f, 1000.0f);
+	View = glm::lookAt(CameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	Projection = glm::perspective<float>(1, 1.0f, 0.1f, 1000.0f);
 
 	{
 		cy::TriMesh::Mtl material = Teapot.m_Mesh.M(0);
@@ -167,6 +185,26 @@ bool InitGL()
 		}
 	}
 
+	//GLRenderDepth
+	{
+		assert(RD.Initialize(true, SCREEN_WIDTH, SCREEN_HEIGHT));
+//		RD.SetTextureFilteringMode(GL_LINEAR, 0);
+//		RD.SetTextureMaxAnisotropy();
+//		RD.BuildTextureMipmaps();
+	}
+
+	{
+		depthModel = glm::mat4(1.0);
+		depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		depthProjection = glm::ortho<float>(-10, 10, -10, 10, -10, 60);
+//		depthProjection = glm::perspective<float>(1, 1.0f, 0.1f, 10.0f);
+	}
+
+	{
+		EffectDepth.Create("vShaderDepthRTT", "fShaderDepthRTT");
+	}
+
+
 	//RTT specific:
 	{
 		RT.Initialize(true, 3, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -174,20 +212,24 @@ bool InitGL()
 		RT.SetTextureMaxAnisotropy();
 		RT.BuildTextureMipmaps();
 
-		Model_RTT.SetIdentity();
-		Model_RTT.SetScale(cy::Point3<float>(5, 5, 5));
+		Model_RTT = glm::mat4(1.0);
+		Model_RTT = glm::scale(Model_RTT, glm::vec3(5, 5, 5));
+
+//		Model_RTT.SetScale(cy::Point3<float>(5, 5, 5));
 
 	}
 
 	{
-		Quad_VertexBufferData = 
+
+		Quad_VertexBufferData =
 		{
-			-9.0f,  0.0f, -9.0f,   0.0f, 1.0f, 0.0f,   0.0,  0.0, 0.0f,
-			 9.0f,  0.0f, -9.0f,   0.0f, 1.0f, 0.0f,   1.0,  0.0, 0.0f,
-			-9.0f,  0.0f,  9.0f,   0.0f, 1.0f, 0.0f,   0.0,  1.0, 0.0f,
-			 9.0f,  0.0f, -9.0f,   0.0f, 1.0f, 0.0f,   1.0,  0.0, 0.0f,
-			 9.0f,  0.0f,  9.0f,   0.0f, 1.0f, 0.0f,   1.0,  1.0, 0.0f,
-			-9.0f,  0.0f,  9.0f,   0.0f, 1.0f, 0.0f,   0.0,  1.0, 0.0f,
+			-9.0f,  0.0f, -9.0f,   0.0f, 1.0f, 0.0f,   0.0,  1.0, 0.0f,
+			-9.0f,  0.0f,  9.0f,   0.0f, 1.0f, 0.0f,   0.0,  0.0, 0.0f,
+			 9.0f,  0.0f, -9.0f,   0.0f, 1.0f, 0.0f,   1.0,  1.0, 0.0f,
+
+			 9.0f,  0.0f, -9.0f,   0.0f, 1.0f, 0.0f,   1.0,  1.0, 0.0f,
+			-9.0f,  0.0f,  9.0f,   0.0f, 1.0f, 0.0f,   0.0,  0.0, 0.0f,
+			 9.0f,  0.0f,  9.0f,   0.0f, 1.0f, 0.0f,   1.0,  0.0, 0.0f,
 		};
 
 		{
@@ -222,7 +264,7 @@ bool InitGL()
 
 		//Effect -- RTT
 		{
-			EffectRTT.Create("vShaderRTT", "fShaderRTT");
+			EffectPlane.Create("vShaderShadow", "fShaderShadow");
 		}
 
 	}
@@ -241,42 +283,61 @@ bool InitGL()
 
 void Update()
 {
-	static float Green = 0.0f;
-
-//	Green += delta;
-//	delta = (Green >= 1.0) ? -0.01f : (Green <= 0.0) ? 0.01f : delta;
-
 
 	if (LeftCtrlPressed)
 	{
-		LightPos = cy::Matrix3<float>::MatrixRotationZ(0.1f * mouseXDelta) * LightPos;
+
+		if (LeftClicked)
+		{
+			if(LightPos.x < 50)
+				LightPos += glm::vec3(1, 0, 0);
+		}
+		else if (RightClicked)
+		{
+			if (LightPos.x > -50)
+				LightPos -= glm::vec3(1, 0, 0);
+		}
+
+		depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	}
-	if (LeftAltPressed)
+	else if (LeftAltPressed)
 	{
 		if (LeftClicked)
 		{
-//			View_RTT *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseXDelta);
-//			View_RTT *= cy::Matrix4<float>::MatrixRotationY(0.1f * mouseYDelta);
-
 
 		}
 		else if (RightClicked)
 		{
-//			View_RTT.AddTrans(cy::Point3f(0, 0, mouseXDelta));
+
 		}
 	}
 	else if (LeftClicked)
 	{
-		View *= cy::Matrix4<float>::MatrixRotationX(0.1f * mouseXDelta);
-//		View *= cy::Matrix4<float>::MatrixRotationZ(0.1f * mouseYDelta);
+		cy::Point3<float> min = Teapot.m_Mesh.GetBoundMin();
+		cy::Point3<float> max = Teapot.m_Mesh.GetBoundMax();
+		cy::Point3<float> Translate = (min + max) / 2;
+
+
+		Model = glm::translate(Model, glm::vec3(Translate.x, Translate.y, Translate.z));
+
+		Model = glm::rotate(Model, 0.5f * mouseXDelta, glm::vec3(1, 0, 0));
+		Model = glm::rotate(Model, 0.5f * mouseYDelta, glm::vec3(0, 1, 0));
+
+		Model = glm::translate(Model, glm::vec3(-Translate.x, -Translate.y, -Translate.z));
 	}
 	else if (RightClicked)
 	{
-		View.AddTrans(cy::Point3f(0, 0, mouseXDelta));
+		if(mouseXDelta > 0)
+			CameraPos += glm::normalize(CameraPos);
+		else 
+			CameraPos -= glm::normalize(CameraPos);
+
+		View = glm::lookAt(CameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+
+//		Model = glm::rotate(Model, 0.01f, glm::vec3(1, 0, 0));
 	}
 
-
-	glClearColor(0.0f, Green, 0.0f, 0.0f);
 
 	glutPostRedisplay();
 }
@@ -325,28 +386,22 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 
 	case GLUT_KEY_LEFT:
 
-		View *= cy::Matrix4<float>::MatrixRotationX(PI);
-//		Model *= cy::Matrix4<float>::MatrixRotationX(1);
+		CameraPos += glm::vec3(-1, 0, 0);
 		break;
 
 	case GLUT_KEY_RIGHT:
-		View *= cy::Matrix4<float>::MatrixRotationZ(PI);
-//		Model *= cy::Matrix4<float>::MatrixRotationZ(PI);
+
+		CameraPos += glm::vec3(1, 0, 0);
 		break;
 
 	case GLUT_KEY_UP:
 
-		View *= cy::Matrix4<float>::MatrixRotationY(PI);
-//		rot += 10;
-//		std::cout << rot << std::endl;
-
-//		Model.SetRotationY(rot);
-
-//		Model.AddTrans(cy::Point3f(0, 0.1f, 0));
+		CameraPos += glm::vec3(0, 1, 0);
 		break;
 
 	case GLUT_KEY_DOWN:
-		Model.AddTrans(cy::Point3f(0, -0.1f, 0));
+
+		CameraPos += glm::vec3(0, -1, 0);
 		break;
 
 	case 114:
@@ -412,130 +467,122 @@ void myMouseMove(int x, int y)
 void Render()
 {
     //Clear color buffer
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-	RT.Bind();
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+	RD.Bind();
+
+//	glEnable(GL_CULL_FACE);
+//	glCullFace(GL_BACK);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//Skybox
+
+	//shadow
 	{
-		glDepthMask(GL_FALSE);
-		glUseProgram(EffectSkybox.GetID());
+		glUseProgram(EffectDepth.GetID());
 
-		ModelID = glGetUniformLocation(EffectSkybox.GetID(), "M");
-		ViewID = glGetUniformLocation(EffectSkybox.GetID(), "V");
-		ProjectionID = glGetUniformLocation(EffectSkybox.GetID(), "P");
-
-		cyMatrix4f tmp = View;
-		tmp[12] = tmp[13] = tmp[14] = 0;
-
-
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_SKY[0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &tmp[0]);
-		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
-
-		glBindVertexArray(Skybox.m_vertex_Array_Id);
-		glDrawArrays(GL_TRIANGLES, 0, Skybox.m_vertex_buffer_data.size());
-		glDepthMask(GL_TRUE);
-
-	}
-
-
-	//Teapot
-	{
-		glUseProgram(Effect.GetID());
-
-		ModelID = glGetUniformLocation(Effect.GetID(), "M");
-		ViewID = glGetUniformLocation(Effect.GetID(), "V");
-		ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
-
-
-		cyMatrix4f tmp = View;
-//		tmp *= cy::Matrix4<float>::MatrixRotationX(PI);
-//		tmp *= cy::Matrix4<float>::MatrixRotationZ(PI);
-
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &tmp[0]);
-		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
-		glUniform3fv(LightID, 1, &LightPos[0]);
-
-		glBindVertexArray(Teapot.m_vertex_Array_Id);
-		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
-
-	}
-
-
-	RT.Unbind();
-
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	//Skybox
-	{
-		glDepthMask(GL_FALSE);
-		glUseProgram(EffectSkybox.GetID());
-
-		ModelID = glGetUniformLocation(EffectSkybox.GetID(), "M");
-		ViewID = glGetUniformLocation(EffectSkybox.GetID(), "V");
-		ProjectionID = glGetUniformLocation(EffectSkybox.GetID(), "P");
-
-
-		cyMatrix4f tmp = View;
-		tmp[12] = tmp[13] = tmp[14] = 0;
-
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_SKY[0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &tmp[0]);
-		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
-
-		glBindVertexArray(Skybox.m_vertex_Array_Id);
-		glDrawArrays(GL_TRIANGLES, 0, Skybox.m_vertex_buffer_data.size());
-		glDepthMask(GL_TRUE);
-	}
-
-
-
-	//Teapot
-	{
-		glUseProgram(Effect.GetID());
-
-		ModelID = glGetUniformLocation(Effect.GetID(), "M");
-		ViewID = glGetUniformLocation(Effect.GetID(), "V");
-		ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
-
-
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
-		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
-		glUniform3fv(LightID, 1, &LightPos[0]);
+		glm::mat4 depthMVP = depthProjection * depthView * depthModel;
+		depthMatrixID = glGetUniformLocation(EffectDepth.GetID(), "depthMVP");
+		glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
 
 		glBindVertexArray(Teapot.m_vertex_Array_Id);
 		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
 	}
 
+	
+	RD.Unbind();
 
-	//Plane
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Teapot
 	{
 		glUseProgram(Effect.GetID());
+
+		glm::mat4 biasMatrix(0.5, 0.0, 0.0, 0.0,
+							 0.0, 0.5, 0.0, 0.0,
+			                 0.0, 0.0, 0.5, 0.0,
+			                 0.5, 0.5, 0.5, 1.0);
+
+		glm::mat4 depthMVP = depthProjection * depthView * depthModel;
+		glm::mat4 depthBiasMVP = biasMatrix * depthMVP;
+
 
 		ModelID = glGetUniformLocation(Effect.GetID(), "M");
 		ViewID = glGetUniformLocation(Effect.GetID(), "V");
 		ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
+		DepthBiasID = glGetUniformLocation(Effect.GetID(), "DepthBiasMVP");
 
+		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0][0]);
+		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
+		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
+		glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthBiasMVP[0][0]);
 
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_RTT[0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0]);
-		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0]);
+		glUniform3fv(LightID, 1, &LightPos[0]);
 
 		glActiveTexture(GL_TEXTURE0);
-		RT.BindTexture();
+		glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
+		GLuint TextureID = glGetUniformLocation(Effect.GetID(), "myTextureSampler");
+		glUniform1i(TextureID, 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		RD.BindTexture();
+		GLuint ShadowID = glGetUniformLocation(Effect.GetID(), "shadowMap");
+		glUniform1i(ShadowID, 1);
+
+//		glBindTexture(GL_TEXTURE_2D, Texture_Brick_Specular_ID);
+
+		glBindVertexArray(Teapot.m_vertex_Array_Id);
+		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
+	}
+//
+//
+	//Plane
+	{
+		glUseProgram(EffectPlane.GetID());
+
+		glm::mat4 biasMatrix(0.5, 0.0, 0.0, 0.0,
+			                 0.0, 0.5, 0.0, 0.0,
+			                 0.0, 0.0, 0.5, 0.0,
+			                 0.5, 0.5, 0.5, 1.0);
+
+		glm::mat4 depthMVP = depthProjection * depthView * depthModel;
+		glm::mat4 depthBiasMVP = biasMatrix * depthMVP;
+
+
+
+		ModelID = glGetUniformLocation(EffectPlane.GetID(), "M");
+		ViewID = glGetUniformLocation(EffectPlane.GetID(), "V");
+		ProjectionID = glGetUniformLocation(EffectPlane.GetID(), "P");
+		DepthBiasID = glGetUniformLocation(EffectPlane.GetID(), "DepthBiasMVP");
+
+
+		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_RTT[0][0]);
+		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
+		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
+		glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthBiasMVP[0][0]);
+		glUniform3fv(LightID, 1, &LightPos[0]);
+
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
+		GLuint TextureID = glGetUniformLocation(EffectPlane.GetID(), "myTextureSampler");
+		glUniform1i(TextureID, 0);
+
+
+		glActiveTexture(GL_TEXTURE1);
+		RD.BindTexture();
+		GLuint ShadowID = glGetUniformLocation(EffectPlane.GetID(), "shadowMap");
+		glUniform1i(ShadowID, 1);
+
 
 		glBindVertexArray(Quad_Array_ID);
 		glDrawArrays(GL_TRIANGLES, 0, Quad_VertexBufferData.size());
 	}
-
-
 
 
 
