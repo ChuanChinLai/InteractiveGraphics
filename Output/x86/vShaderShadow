@@ -1,0 +1,40 @@
+#version 330 core
+
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 vertexNormal_modelspace;
+layout(location = 2) in vec2 vertexUV;
+
+out vec2 UV;
+out vec3 lightPos;
+out vec3 viewPos;
+
+
+out VS_OUT {
+    vec3 FragPos;
+    vec3 Normal;
+    vec2 TexCoords;
+    vec4 FragPosLightSpace;
+} vs_out;
+
+uniform vec3 LightPosition_worldspace;
+uniform vec3 CameraPosition_worldspace;
+
+uniform mat4 M;
+uniform mat4 V;
+uniform mat4 P;
+uniform mat4 DepthBiasMVP;
+
+void main()
+{
+	UV = vertexUV;	
+	lightPos = LightPosition_worldspace;
+	viewPos  = CameraPosition_worldspace;
+	
+	vs_out.FragPos = vec3(M * vec4(vertexPosition_modelspace, 1.0));
+    vs_out.Normal = transpose(inverse(mat3(M))) * vertexNormal_modelspace;
+    vs_out.TexCoords = vertexUV;
+    vs_out.FragPosLightSpace = DepthBiasMVP * vec4(vs_out.FragPos, 1.0);
+	
+	gl_Position =  P * V * M * vec4(vertexPosition_modelspace, 1);
+	
+}
