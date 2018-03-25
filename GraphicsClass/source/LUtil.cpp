@@ -22,8 +22,8 @@ const float PI = 3.14159265359f;
 
 std::string OBJ_NAME = "teapot.obj";
 
-Lai::Mesh Teapot;
 Lai::Mesh Light;
+Lai::Mesh Tree;
 
 Lai::Skybox Skybox;
 
@@ -108,7 +108,8 @@ bool InitGL()
 
 
 	Light.Create("light.obj");
-	Teapot.Create(OBJ_NAME);
+	Tree.Create("Tree low.obj");
+
 
 	Effect.Create("vShaderShadow", "fShaderShadow");
 
@@ -118,35 +119,18 @@ bool InitGL()
 	LightID		 = glGetUniformLocation(Effect.GetID(), "LightPosition_worldspace");
 
 	Model = glm::mat4(1.0);
-//	Model = glm::translate(Model, glm::vec3(0, 10, 0));
-//	Model.SetRotationX(-PI / 2.0f);
-//	Model.AddTrans(cy::Point3f(0, 0, 0));
 
-	{
-		Teapot.m_Mesh.ComputeBoundingBox();
-
-		cy::Point3<float> min = Teapot.m_Mesh.GetBoundMin();
-		cy::Point3<float> max = Teapot.m_Mesh.GetBoundMax();
-		
-		cy::Point3<float> Translate = (min + max) / 2;
-
-//		Model.AddTrans(-Translate);
-
-		//Model = glm::translate(Model, glm::vec3(Translate.x, Translate.y, Translate.z));
-		//Model = glm::rotate(Model, -90.0f, glm::vec3(1, 0, 0));
-		//Model = glm::translate(Model, glm::vec3(-Translate.x, -Translate.y, -Translate.z));
-	}
 
 	View = glm::lookAt(CameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	Projection = glm::perspective<float>(1, 1.0f, 10.f, 500.0f);
 
 	{
-		cy::TriMesh::Mtl material = Teapot.m_Mesh.M(0);
+		cy::TriMesh::Mtl material = Tree.m_Mesh.M(0);
 
 		{
 			std::vector<unsigned char> image;
 			unsigned width, height;
-			unsigned error = lodepng::decode(image, width, height, material.map_Kd.data, LodePNGColorType::LCT_RGB);
+			unsigned error = lodepng::decode(image, width, height, material.map_Kd, LodePNGColorType::LCT_RGB);
 
 			// If there's an error, display it.
 			if (error != 0)
@@ -166,27 +150,6 @@ bool InitGL()
 		}
 
 
-		{
-			std::vector<unsigned char> image;
-			unsigned width, height;
-			unsigned error = lodepng::decode(image, width, height, material.map_Ks.data, LodePNGColorType::LCT_RGB);
-
-			// If there's an error, display it.
-			if (error != 0)
-			{
-				std::cout << "error " << error << ": " << lodepng_error_text(error) << std::endl;
-				return false;
-			}
-
-			glGenTextures(1, &Texture_Brick_Specular_ID);
-
-			glBindTexture(GL_TEXTURE_2D, Texture_Brick_Specular_ID);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-			glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image.data());
-		}
 	}
 
 	//GLRenderDepth
@@ -468,50 +431,9 @@ void Render()
 {
     //Clear color buffer
 
-	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-	RD.Bind();
+	glClearColor(1, 1, 1, 1.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	//shadow
-	{
-		glUseProgram(EffectDepth.GetID());
-
-		glm::mat4 depthMVP = depthProjection * depthView * Model;
-		depthMatrixID = glGetUniformLocation(EffectDepth.GetID(), "depthMVP");
-		glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
-
-		glBindVertexArray(Teapot.m_vertex_Array_Id);
-		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
-	}
-
-	
-	RD.Unbind();
-
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//Light:
-	{
-		glUseProgram(EffectSimple.GetID());
-
-		ModelID = glGetUniformLocation(EffectSimple.GetID(), "M");
-		ViewID = glGetUniformLocation(EffectSimple.GetID(), "V");
-		ProjectionID = glGetUniformLocation(EffectSimple.GetID(), "P");
-
-		glm::mat4 lightModel = depthModel;
-		lightModel = glm::scale(lightModel, glm::vec3(3, 3, 3));
-		lightModel = glm::translate(lightModel, LightPos);
-
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &lightModel[0][0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
-		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
-
-		glBindVertexArray(Light.m_vertex_Array_Id);
-		glDrawArrays(GL_TRIANGLES, 0, Light.m_vertex_buffer_data.size());
-
-	}
 
 	{
 		glUseProgram(EffectPlane.GetID());
@@ -526,7 +448,6 @@ void Render()
 
 		LightID = glGetUniformLocation(EffectPlane.GetID(), "LightPosition_worldspace");
 		cameraID = glGetUniformLocation(EffectPlane.GetID(), "CameraPosition_worldspace");
-
 
 
 		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0][0]);
@@ -549,76 +470,12 @@ void Render()
 		glUniform1i(ShadowID, 1);
 
 
-		glBindVertexArray(Teapot.m_vertex_Array_Id);
-		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
-	}
-
-//
-	//Plane
-	{
-		glUseProgram(EffectPlane.GetID());
-
-		glm::mat4 depthMVP = depthProjection * depthView * depthModel;
-
-		ModelID = glGetUniformLocation(EffectPlane.GetID(), "M");
-		ViewID = glGetUniformLocation(EffectPlane.GetID(), "V");
-		ProjectionID = glGetUniformLocation(EffectPlane.GetID(), "P");
-		DepthBiasID = glGetUniformLocation(EffectPlane.GetID(), "DepthBiasMVP");
-
-		LightID = glGetUniformLocation(EffectPlane.GetID(), "LightPosition_worldspace");
-		cameraID = glGetUniformLocation(EffectPlane.GetID(), "CameraPosition_worldspace");
-
-
-
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_RTT[0][0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
-		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
-		glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthMVP[0][0]);
-
-		glUniform3fv(LightID, 1, &LightPos[0]);
-		glUniform3fv(cameraID, 1, &CameraPos[0]);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
-		GLuint TextureID = glGetUniformLocation(EffectPlane.GetID(), "diffuseTexture");
-		glUniform1i(TextureID, 0);
-
-
-		glActiveTexture(GL_TEXTURE1);
-		RD.BindTexture();
-		GLuint ShadowID = glGetUniformLocation(EffectPlane.GetID(), "shadowMap");
-		glUniform1i(ShadowID, 1);
-
-
-		glBindVertexArray(Quad_Array_ID);
-		glDrawArrays(GL_TRIANGLES, 0, Quad_VertexBufferData.size());
+		glBindVertexArray(Tree.m_vertex_Array_Id);
+		glDrawArrays(GL_TRIANGLES, 0, Tree.m_vertex_buffer_data.size());
 	}
 
 
 
-
-//	RT.Unbind();
-
-	/*==================================*/
-
-	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//glUseProgram(EffectRTT.GetID());
-
-	//ModelID = glGetUniformLocation(EffectRTT.GetID(), "M");
-	//ViewID	= glGetUniformLocation(EffectRTT.GetID(), "V");
-	//ProjectionID = glGetUniformLocation(EffectRTT.GetID(), "P");
-
-	//glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model_RTT[0]);
-	//glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View_RTT[0]);
-	//glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection_RTT[0]);
-
-	//glActiveTexture(GL_TEXTURE0);
-	//RT.BindTexture();
-
-	//glBindVertexArray(Quad_Array_ID);
-	//glDrawArrays(GL_TRIANGLES, 0, Quad_VertexBufferData.size());
 
 
  //   Update screen
