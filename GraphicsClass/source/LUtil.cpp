@@ -42,7 +42,7 @@ GLuint LightID;
 GLuint cameraID;
 
 
-glm::vec3 LightPos(0.0f, 5.0f, -3.0f);
+glm::vec3 LightPos(0.0f, 30.0f, 30.0f);
 
 glm::vec3 CameraPos(0, 50, 30);
 
@@ -138,7 +138,7 @@ bool InitGL()
 	}
 
 	View = glm::lookAt(CameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	Projection = glm::perspective<float>(1, 1.0f, 0.1f, 1000.0f);
+	Projection = glm::perspective<float>(1, 1.0f, 10.f, 500.0f);
 
 	{
 		cy::TriMesh::Mtl material = Teapot.m_Mesh.M(0);
@@ -198,7 +198,9 @@ bool InitGL()
 		depthModel = glm::mat4(1.0);
 
 		depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-		depthProjection = glm::ortho<float>(-100, 100, -100, 100, 0.1f, 750.0f);
+//		depthProjection = glm::ortho<float>(-100, 100, -100, 100, 0.0f, 750.0f);
+
+		depthProjection = glm::perspective<float>(1, 1.0f, 0.1f, 1000.0f);
 //		depthProjection = glm::perspective<float>(1, 1.0f, 0.1f, 10.0f);
 	}
 
@@ -290,7 +292,7 @@ void Update()
 	{
 		if (LeftClicked)
 		{
-			if (LightPos.x < 10)
+			if (LightPos.x < 50)
 			{
 				LightPos += glm::vec3(1, 0, 0);
 
@@ -299,7 +301,7 @@ void Update()
 		}
 		else if (RightClicked)
 		{
-			if (LightPos.x > -10)
+			if (LightPos.x > -50)
 			{
 				LightPos -= glm::vec3(1, 0, 0);
 			}
@@ -469,9 +471,6 @@ void Render()
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 	RD.Bind();
 
-//	glEnable(GL_CULL_FACE);
-//	glCullFace(GL_BACK);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -479,7 +478,7 @@ void Render()
 	{
 		glUseProgram(EffectDepth.GetID());
 
-		glm::mat4 depthMVP = depthProjection * depthView * depthModel;
+		glm::mat4 depthMVP = depthProjection * depthView * Model;
 		depthMatrixID = glGetUniformLocation(EffectDepth.GetID(), "depthMVP");
 		glUniformMatrix4fv(depthMatrixID, 1, GL_FALSE, &depthMVP[0][0]);
 
@@ -514,63 +513,52 @@ void Render()
 
 	}
 
-
-
-	//Teapot
 	{
-		glUseProgram(Effect.GetID());
+		glUseProgram(EffectPlane.GetID());
 
-		glm::mat4 biasMatrix(0.5, 0.0, 0.0, 0.0,
-							 0.0, 0.5, 0.0, 0.0,
-			                 0.0, 0.0, 0.5, 0.0,
-			                 0.5, 0.5, 0.5, 1.0);
-
-		glm::mat4 depthMVP = depthProjection * depthView * depthModel;
-		glm::mat4 depthBiasMVP = biasMatrix * depthMVP;
+		glm::mat4 depthMVP = depthProjection * depthView * Model;
 
 
-		ModelID = glGetUniformLocation(Effect.GetID(), "M");
-		ViewID = glGetUniformLocation(Effect.GetID(), "V");
-		ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
-		DepthBiasID = glGetUniformLocation(Effect.GetID(), "DepthBiasMVP");
-		LightID = glGetUniformLocation(Effect.GetID(), "LightPosition_worldspace");
+		ModelID = glGetUniformLocation(EffectPlane.GetID(), "M");
+		ViewID = glGetUniformLocation(EffectPlane.GetID(), "V");
+		ProjectionID = glGetUniformLocation(EffectPlane.GetID(), "P");
+		DepthBiasID = glGetUniformLocation(EffectPlane.GetID(), "DepthBiasMVP");
+
+		LightID = glGetUniformLocation(EffectPlane.GetID(), "LightPosition_worldspace");
+		cameraID = glGetUniformLocation(EffectPlane.GetID(), "CameraPosition_worldspace");
+
+
 
 		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0][0]);
 		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
 		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
-		glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthBiasMVP[0][0]);
+		glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthMVP[0][0]);
+
 		glUniform3fv(LightID, 1, &LightPos[0]);
+		glUniform3fv(cameraID, 1, &CameraPos[0]);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
-		GLuint TextureID = glGetUniformLocation(Effect.GetID(), "myTextureSampler");
+		GLuint TextureID = glGetUniformLocation(EffectPlane.GetID(), "diffuseTexture");
 		glUniform1i(TextureID, 0);
+
 
 		glActiveTexture(GL_TEXTURE1);
 		RD.BindTexture();
-		GLuint ShadowID = glGetUniformLocation(Effect.GetID(), "shadowMap");
+		GLuint ShadowID = glGetUniformLocation(EffectPlane.GetID(), "shadowMap");
 		glUniform1i(ShadowID, 1);
 
-//		glBindTexture(GL_TEXTURE_2D, Texture_Brick_Specular_ID);
 
 		glBindVertexArray(Teapot.m_vertex_Array_Id);
 		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
 	}
-//
+
 //
 	//Plane
 	{
 		glUseProgram(EffectPlane.GetID());
 
-		glm::mat4 biasMatrix(0.5, 0.0, 0.0, 0.0,
-			                 0.0, 0.5, 0.0, 0.0,
-			                 0.0, 0.0, 0.5, 0.0,
-			                 0.5, 0.5, 0.5, 1.0);
-
 		glm::mat4 depthMVP = depthProjection * depthView * depthModel;
-//		glm::mat4 depthBiasMVP = biasMatrix * depthMVP;
-
-
 
 		ModelID = glGetUniformLocation(EffectPlane.GetID(), "M");
 		ViewID = glGetUniformLocation(EffectPlane.GetID(), "V");
@@ -592,7 +580,7 @@ void Render()
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
-		GLuint TextureID = glGetUniformLocation(EffectPlane.GetID(), "myTextureSampler");
+		GLuint TextureID = glGetUniformLocation(EffectPlane.GetID(), "diffuseTexture");
 		glUniform1i(TextureID, 0);
 
 
