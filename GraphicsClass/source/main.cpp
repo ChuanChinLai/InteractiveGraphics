@@ -33,7 +33,7 @@ int main(int argc, char* args[])
 	glutSpecialUpFunc(SpecialUpInput);
 
 	glutMouseFunc(MouseClicks);
-	glutMotionFunc(myMouseMove);
+	glutPassiveMotionFunc(myMouseMove);
 
 	//Start GLUT main loop
 	glutMainLoop();

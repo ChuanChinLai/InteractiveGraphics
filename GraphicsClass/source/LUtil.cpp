@@ -3,6 +3,7 @@
 #include "Mesh\Mesh.h"
 #include "Effect\Effect.h"
 #include "Mesh\Skybox.h"
+#include "Camera\Camera.h"
 
 #include <glm\glm\glm.hpp>
 #include <glm\glm\gtx\euler_angles.hpp>
@@ -44,22 +45,14 @@ GLuint cameraID;
 
 glm::vec3 LightPos(0.0f, 30.0f, 30.0f);
 
-glm::vec3 CameraPos(0, 50, 30);
+Lai::Camera camera;
+
+//glm::vec3 CameraPos(0, 50, 30);
 
 glm::mat4 Model;
-glm::mat4 View;
+
 glm::mat4 Projection;
 
-
-glm::mat4 depthModel;
-glm::mat4 depthView;
-glm::mat4 depthProjection;
-
-GLuint depthMatrixID;
-
-
-glm::mat4 Model_RTT;
-glm::mat4 Model_SKY;
 
 
 GLuint Texture_Brick_ID;
@@ -108,7 +101,7 @@ bool InitGL()
 
 
 	Light.Create("light.obj");
-	Tree.Create("Tree low.obj");
+	Tree.Create("low poly tree.obj");
 
 
 	Effect.Create("vShaderShadow", "fShaderShadow");
@@ -121,7 +114,9 @@ bool InitGL()
 	Model = glm::mat4(1.0);
 
 
-	View = glm::lookAt(CameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	camera.SetPosition(glm::vec3(0, 50, 30));
+//	View = glm::lookAt(camera.GetPosition(), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
 	Projection = glm::perspective<float>(1, 1.0f, 10.f, 500.0f);
 
 	{
@@ -130,7 +125,7 @@ bool InitGL()
 		{
 			std::vector<unsigned char> image;
 			unsigned width, height;
-			unsigned error = lodepng::decode(image, width, height, material.map_Kd, LodePNGColorType::LCT_RGB);
+			unsigned error = lodepng::decode(image, width, height, "maple_bark.png", LodePNGColorType::LCT_RGB);
 
 			// If there's an error, display it.
 			if (error != 0)
@@ -158,13 +153,11 @@ bool InitGL()
 	}
 
 	{
-		depthModel = glm::mat4(1.0);
+		//depthModel = glm::mat4(1.0);
 
-		depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-//		depthProjection = glm::ortho<float>(-100, 100, -100, 100, 0.0f, 750.0f);
+		//depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
-		depthProjection = glm::perspective<float>(1, 1.0f, 0.1f, 1000.0f);
-//		depthProjection = glm::perspective<float>(1, 1.0f, 0.1f, 10.0f);
+		//depthProjection = glm::perspective<float>(1, 1.0f, 0.1f, 1000.0f);
 	}
 
 	{
@@ -179,8 +172,8 @@ bool InitGL()
 		RT.SetTextureMaxAnisotropy();
 		RT.BuildTextureMipmaps();
 
-		Model_RTT = glm::mat4(1.0);
-		Model_RTT = glm::scale(Model_RTT, glm::vec3(15, 15, 15));
+		//Model_RTT = glm::mat4(1.0);
+		//Model_RTT = glm::scale(Model_RTT, glm::vec3(15, 15, 15));
 
 //		Model_RTT.SetScale(cy::Point3<float>(5, 5, 5));
 
@@ -239,11 +232,6 @@ bool InitGL()
 
 	{
 		EffectSimple.Create("vShaderSimple", "fShaderSimple");
-		//EffectSkybox.Create("vShaderSky", "fShaderSky");
-		//Skybox.Init();
-
-		//Model_SKY.SetIdentity();
-		//Model_SKY.SetScale(cy::Point3<float>(10, 10, 10));
 	}
 
 	return true;
@@ -258,9 +246,7 @@ void Update()
 			if (LightPos.x < 50)
 			{
 				LightPos += glm::vec3(1, 0, 0);
-
 			}
-
 		}
 		else if (RightClicked)
 		{
@@ -270,36 +256,39 @@ void Update()
 			}
 		}
 
-		depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+//		depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	}
 	else if (LeftAltPressed)
 	{
 		if (LeftClicked)
 		{
-			View = glm::rotate(View, 0.1f * mouseXDelta, glm::vec3(0, 1, 0));
+//			View = glm::rotate(View, 0.1f * mouseXDelta, glm::vec3(0, 1, 0));
 			glm::mat4 rotationMat = glm::rotate(rotationMat, 0.1f * mouseXDelta, glm::vec3(0, 1, 0));
 		}
 		else if (RightClicked)
 		{
-			View = glm::rotate(View, 0.1f * mouseYDelta, glm::vec3(1, 0, 0));
+//			View = glm::rotate(View, 0.1f * mouseYDelta, glm::vec3(1, 0, 0));
 			glm::mat4 rotationMat = glm::rotate(rotationMat, 0.1f * mouseYDelta, glm::vec3(1, 0, 0));
 		}
 	}
 	else if (LeftClicked)
-	{
-		cameraRotationX += 0.01f;
+	{	
+
 	}
 	else if (RightClicked)
 	{
-		if(mouseXDelta > 0)
-			CameraPos += glm::normalize(CameraPos);
-		else 
-			CameraPos -= glm::normalize(CameraPos);
+		//if(mouseXDelta > 0)
+		//	CameraPos += glm::normalize(CameraPos);
+		//else 
+		//	CameraPos -= glm::normalize(CameraPos);
 
-		View = glm::lookAt(CameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		//View = glm::lookAt(CameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
-//		Model = glm::rotate(Model, 0.01f, glm::vec3(1, 0, 0));
 	}
+
+	std::cout << " " << mouseXDelta << " " << mouseYDelta << std::endl;
+
+	camera.SetRotation(glm::vec2(0.005f * mouseXDelta, 0.005f * mouseYDelta));
 
 
 	glutPostRedisplay();
@@ -349,22 +338,22 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 
 	case GLUT_KEY_LEFT:
 
-		CameraPos += glm::vec3(-1, 0, 0);
+		camera.SetPosition(camera.GetPosition() - glm::vec3(1, 0, 0));
 		break;
 
 	case GLUT_KEY_RIGHT:
 
-		CameraPos += glm::vec3(1, 0, 0);
+		camera.SetPosition(camera.GetPosition() + glm::vec3(1, 0, 0));
 		break;
 
 	case GLUT_KEY_UP:
 
-		CameraPos += glm::vec3(0, 1, 0);
+		camera.SetPosition(camera.GetPosition() + glm::vec3(0, 0, 1));
 		break;
 
 	case GLUT_KEY_DOWN:
 
-		CameraPos += glm::vec3(0, -1, 0);
+		camera.SetPosition(camera.GetPosition() - glm::vec3(0, 0, 1));
 		break;
 
 	case 114:
@@ -412,16 +401,12 @@ void MouseClicks(int button, int state, int x, int y)
 	{
 		RightClicked = (state == GLUT_DOWN);
 	}
-
-
-	mouseXPos = x;
-	mouseYPos = y;
 }
 
 void myMouseMove(int x, int y)
 {
-	mouseXDelta = 0.05f * (mouseXPos - x);
-	mouseYDelta = 0.05f * (mouseYPos - y);
+	mouseXDelta = (mouseXPos - x);
+	mouseYDelta = (mouseYPos - y);
 
 	mouseXPos = x;
 	mouseYPos = y;
@@ -438,8 +423,6 @@ void Render()
 	{
 		glUseProgram(EffectPlane.GetID());
 
-		glm::mat4 depthMVP = depthProjection * depthView * Model;
-
 
 		ModelID = glGetUniformLocation(EffectPlane.GetID(), "M");
 		ViewID = glGetUniformLocation(EffectPlane.GetID(), "V");
@@ -451,12 +434,12 @@ void Render()
 
 
 		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0][0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
+		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &camera.GetCameraMat()[0][0]);
 		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
-		glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthMVP[0][0]);
+
 
 		glUniform3fv(LightID, 1, &LightPos[0]);
-		glUniform3fv(cameraID, 1, &CameraPos[0]);
+		glUniform3fv(cameraID, 1, &camera.GetPosition()[0]);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
