@@ -114,10 +114,10 @@ bool InitGL()
 	Model = glm::mat4(1.0);
 
 
-	camera.SetPosition(glm::vec3(0, 50, 30));
+	camera.SetPosition(glm::vec3(0, 50, 500));
 //	View = glm::lookAt(camera.GetPosition(), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
-	Projection = glm::perspective<float>(1, 1.0f, 10.f, 500.0f);
+	Projection = glm::perspective<float>(1, 1.0f, 10.f, 1000.0f);
 
 	{
 		cy::TriMesh::Mtl material = Tree.m_Mesh.M(0);
@@ -287,8 +287,15 @@ void Update()
 	}
 
 	std::cout << " " << mouseXDelta << " " << mouseYDelta << std::endl;
+	
+	{
+		float rotX = abs(mouseXDelta) <= 1 ? 0 : mouseXDelta > 0 ? 1 : -1;
+		float rotY = abs(mouseYDelta) <= 1 ? 0 : mouseYDelta > 0 ? 1 : -1;
 
-	camera.SetRotation(glm::vec2(0.005f * mouseXDelta, 0.005f * mouseYDelta));
+		camera.SetRotation(glm::vec2(0.01f * rotX, 0.01f * rotY));
+	}
+
+
 
 
 	glutPostRedisplay();
@@ -338,22 +345,25 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 
 	case GLUT_KEY_LEFT:
 
-		camera.SetPosition(camera.GetPosition() - glm::vec3(1, 0, 0));
+		camera.MoveLeft(10);
+//		camera.SetPosition(camera.GetPosition() - glm::vec3(1, 0, 0));
 		break;
 
 	case GLUT_KEY_RIGHT:
 
-		camera.SetPosition(camera.GetPosition() + glm::vec3(1, 0, 0));
+		camera.MoveRight(10);
+//		camera.SetPosition(camera.GetPosition() + glm::vec3(1, 0, 0));
 		break;
 
 	case GLUT_KEY_UP:
 
-		camera.SetPosition(camera.GetPosition() + glm::vec3(0, 0, 1));
+		camera.MoveForward(10);
+//		camera.SetPosition(camera.GetPosition() + glm::vec3(0, 0, 1));
 		break;
 
 	case GLUT_KEY_DOWN:
-
-		camera.SetPosition(camera.GetPosition() - glm::vec3(0, 0, 1));
+		camera.MoveBackward(10);
+//		camera.SetPosition(camera.GetPosition() - glm::vec3(0, 0, 1));
 		break;
 
 	case 114:
@@ -421,37 +431,17 @@ void Render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	{
-		glUseProgram(EffectPlane.GetID());
+		glUseProgram(EffectSimple.GetID());
 
 
-		ModelID = glGetUniformLocation(EffectPlane.GetID(), "M");
-		ViewID = glGetUniformLocation(EffectPlane.GetID(), "V");
-		ProjectionID = glGetUniformLocation(EffectPlane.GetID(), "P");
-		DepthBiasID = glGetUniformLocation(EffectPlane.GetID(), "DepthBiasMVP");
-
-		LightID = glGetUniformLocation(EffectPlane.GetID(), "LightPosition_worldspace");
-		cameraID = glGetUniformLocation(EffectPlane.GetID(), "CameraPosition_worldspace");
+		ModelID = glGetUniformLocation(EffectSimple.GetID(), "M");
+		ViewID = glGetUniformLocation(EffectSimple.GetID(), "V");
+		ProjectionID = glGetUniformLocation(EffectSimple.GetID(), "P");
 
 
 		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0][0]);
 		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &camera.GetCameraMat()[0][0]);
 		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
-
-
-		glUniform3fv(LightID, 1, &LightPos[0]);
-		glUniform3fv(cameraID, 1, &camera.GetPosition()[0]);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Texture_Brick_ID);
-		GLuint TextureID = glGetUniformLocation(EffectPlane.GetID(), "diffuseTexture");
-		glUniform1i(TextureID, 0);
-
-
-		glActiveTexture(GL_TEXTURE1);
-		RD.BindTexture();
-		GLuint ShadowID = glGetUniformLocation(EffectPlane.GetID(), "shadowMap");
-		glUniform1i(ShadowID, 1);
-
 
 		glBindVertexArray(Tree.m_vertex_Array_Id);
 		glDrawArrays(GL_TRIANGLES, 0, Tree.m_vertex_buffer_data.size());

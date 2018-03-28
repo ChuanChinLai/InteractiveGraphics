@@ -19,6 +19,12 @@ namespace Lai
 		void SetPosition(glm::vec3 i_vec);
 		void SetRotation(glm::vec2 i_vec);
 
+		void MoveForward(float speed);
+		void MoveBackward(float speed);
+		void MoveLeft(float speed);
+		void MoveRight(float speed);
+
+
 	private:
 
 		void UpdateMat();
