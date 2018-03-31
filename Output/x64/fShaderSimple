@@ -1,19 +1,47 @@
 #version 330 core
 
-in vec4 pos;
+in vec4 vertexPosition_worldspace;
+in vec3 vertexNormal_worldspace;
+in vec2 UV;
+
+in vec3 LightDirection_worldspace;
+in vec3 CameraDirection_worldspace;
+
 
 // Ouput data
 out vec4 color;
 
 
-float rand(vec2 n)
-{
-  return 0.5 + 0.5 * 
-     fract(sin(dot(n.xy, vec2(12.9898, 78.233)))* 43758.5453);
-}
+uniform sampler2D Texture_Brick;
 
 void main()
 {
-	float g = rand(pos.xz);
-	color = vec4(0, g, 0, 1);
+	vec3 N = normalize( vertexNormal_worldspace );
+	vec3 L = normalize( LightDirection_worldspace );
+	vec3 V = normalize( CameraDirection_worldspace );
+
+	
+	vec3 LightColor = vec3(1, 1, 1);
+	float LightPower = 5.0f;
+	
+	//
+	float diffuseTerm = clamp( dot(N, L), 0, 1 );
+	vec3 MaterialDiffuseColor = vec3(1, 0, 0);
+	
+	
+	//
+	vec3 MaterialAmbientColor = vec3(0.1, 0.1, 0.1);
+
+	
+	//
+	float Shininess = 50;
+    vec3 H = normalize(L + V);
+    float specularTerm = pow(clamp(dot(N, H), 0, 1), Shininess);
+	vec3 MaterialSpecularColor = vec3(1, 1, 1);
+	
+
+//	color = V;
+//	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm;	
+//	color = MaterialSpecularColor * specularTerm;	
+	color = vec4(MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm, 1);	
 }

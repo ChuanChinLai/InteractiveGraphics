@@ -23,45 +23,34 @@ const float PI = 3.14159265359f;
 
 std::string OBJ_NAME = "teapot.obj";
 
-Lai::Mesh Light;
-Lai::Mesh Tree;
 
-Lai::Skybox Skybox;
+Lai::Mesh Teapot;
+Lai::Mesh Sun;
 
-Lai::Effect Effect;
-Lai::Effect EffectPlane;
-Lai::Effect EffectDepth;
-Lai::Effect EffectSkybox;
+
+//Lai::Effect Effect;
 Lai::Effect EffectSimple;
+Lai::Effect EffectSun;
+
 
 GLuint ModelID;
 GLuint ViewID;
 GLuint ProjectionID;
-GLuint DepthBiasID;
-
-GLuint LightID;
-GLuint cameraID;
 
 
-glm::vec3 LightPos(0.0f, 30.0f, 30.0f);
+
 
 Lai::Camera camera;
 
-//glm::vec3 CameraPos(0, 50, 30);
-
-glm::mat4 Model;
-
+glm::mat4 teapot_model_matrix;
 glm::mat4 Projection;
 
-
+glm::mat4 sun_model_matrix;
+glm::vec3 sunPos(-10, 40, -50);
 
 GLuint Texture_Brick_ID;
 GLuint Texture_Brick_Specular_ID;
 
-
-//Render-To-Texture
-cy::GLRenderTexture2D RT;
-cy::GLRenderDepth2D RD;
 
 std::vector<GLfloat> Quad_VertexBufferData;
 GLuint Quad_Array_ID;
@@ -83,6 +72,19 @@ float mouseYDelta = 0;
 float cameraRotationX = 0;
 float cameraRotationY = 0;
 
+
+//used in sun shader
+
+unsigned int fog_s = 0; 
+unsigned int camera_s = 0;
+unsigned int depth_s = 0;
+unsigned int vertexFactor_s = 0;
+unsigned int depthFog_s = 0;
+unsigned int depthFogChanges_s = 0;
+unsigned int fogFactor_s = 0;
+
+
+
 bool InitGL()
 {
 	//Initialize GLEW
@@ -100,32 +102,33 @@ bool InitGL()
 	glDepthFunc(GL_LEQUAL);
 
 
-	Light.Create("light.obj");
-	Tree.Create("low poly tree.obj");
+	{
+		Teapot.Create("teapot.obj");
+		Teapot.m_Mesh.ComputeBoundingBox();
 
+		cy::Point3<float> min = Teapot.m_Mesh.GetBoundMin();
+		cy::Point3<float> max = Teapot.m_Mesh.GetBoundMax();
+		cy::Point3<float> Translate = -(min + max) / 2;
 
-	Effect.Create("vShaderShadow", "fShaderShadow");
+		teapot_model_matrix = glm::translate(teapot_model_matrix, glm::vec3(Translate.x, Translate.y, Translate.z));
+		teapot_model_matrix = glm::rotate(teapot_model_matrix, -PI / 2, glm::vec3(1, 0, 0));
 
-	ModelID		 = glGetUniformLocation(Effect.GetID(), "M");
-	ViewID		 = glGetUniformLocation(Effect.GetID(), "V");
-	ProjectionID = glGetUniformLocation(Effect.GetID(), "P");
-	LightID		 = glGetUniformLocation(Effect.GetID(), "LightPosition_worldspace");
+	}
 
-	Model = glm::mat4(1.0);
+	Sun.Create("sphere.obj");
+	sun_model_matrix = glm::translate(sun_model_matrix, sunPos);
 
+	camera.SetPosition(glm::vec3(0, 30, 70));
 
-	camera.SetPosition(glm::vec3(0, 50, 500));
-//	View = glm::lookAt(camera.GetPosition(), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
-	Projection = glm::perspective<float>(1, 1.0f, 10.f, 1000.0f);
+	Projection = glm::perspective<float>(1, 1.0f, 0.1f, 10000.0f);
 
 	{
-		cy::TriMesh::Mtl material = Tree.m_Mesh.M(0);
+		cy::TriMesh::Mtl material = Teapot.m_Mesh.M(0);
 
 		{
 			std::vector<unsigned char> image;
 			unsigned width, height;
-			unsigned error = lodepng::decode(image, width, height, "maple_bark.png", LodePNGColorType::LCT_RGB);
+			unsigned error = lodepng::decode(image, width, height, material.map_Kd.data, LodePNGColorType::LCT_RGB);
 
 			// If there's an error, display it.
 			if (error != 0)
@@ -147,37 +150,6 @@ bool InitGL()
 
 	}
 
-	//GLRenderDepth
-	{
-		assert(RD.Initialize(true, SCREEN_WIDTH, SCREEN_HEIGHT));
-	}
-
-	{
-		//depthModel = glm::mat4(1.0);
-
-		//depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
-		//depthProjection = glm::perspective<float>(1, 1.0f, 0.1f, 1000.0f);
-	}
-
-	{
-		EffectDepth.Create("vShaderDepthRTT", "fShaderDepthRTT");
-	}
-
-
-	//RTT specific:
-	{
-		RT.Initialize(true, 3, SCREEN_WIDTH, SCREEN_HEIGHT);
-		RT.SetTextureFilteringMode(GL_LINEAR, 0);
-		RT.SetTextureMaxAnisotropy();
-		RT.BuildTextureMipmaps();
-
-		//Model_RTT = glm::mat4(1.0);
-		//Model_RTT = glm::scale(Model_RTT, glm::vec3(15, 15, 15));
-
-//		Model_RTT.SetScale(cy::Point3<float>(5, 5, 5));
-
-	}
 
 	{
 
@@ -221,18 +193,18 @@ bool InitGL()
 			glEnableVertexAttribArray(2);
 		}
 
-
-		//Effect -- RTT
-		{
-			EffectPlane.Create("vShaderShadow", "fShaderShadow");
-		}
-
 	}
 
 
 	{
 		EffectSimple.Create("vShaderSimple", "fShaderSimple");
 	}
+
+	{
+		EffectSun.Create("vShaderSun", "fShaderSun");
+	}
+
+
 
 	return true;
 }
@@ -243,17 +215,11 @@ void Update()
 	{
 		if (LeftClicked)
 		{
-			if (LightPos.x < 50)
-			{
-				LightPos += glm::vec3(1, 0, 0);
-			}
+			teapot_model_matrix = glm::rotate(teapot_model_matrix, PI/2, glm::vec3(1.0f, 0.0f, 0.0f));
 		}
 		else if (RightClicked)
 		{
-			if (LightPos.x > -50)
-			{
-				LightPos -= glm::vec3(1, 0, 0);
-			}
+//			teapot_model_matrix = glm::rotate(teapot_model_matrix, -0.01f, glm::vec3(1.0f, 0.0f, 0.0f));
 		}
 
 //		depthView = glm::lookAt(LightPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
@@ -286,7 +252,7 @@ void Update()
 
 	}
 
-	std::cout << " " << mouseXDelta << " " << mouseYDelta << std::endl;
+//	std::cout << " " << mouseXDelta << " " << mouseYDelta << std::endl;
 	
 	{
 		float rotX = abs(mouseXDelta) <= 1 ? 0 : mouseXDelta > 0 ? 1 : -1;
@@ -334,13 +300,11 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 	{
 
 	case GLUT_KEY_F6:
-		std::cout << "Change Color" << std::endl;
-		Effect.Create("vShader", "fShader");
+
 		break;
 
 	case GLUT_KEY_F7:
-		std::cout << "Change Color" << std::endl;
-		Effect.Create("vShader", "fShader2");
+
 		break;
 
 	case GLUT_KEY_LEFT:
@@ -426,9 +390,27 @@ void Render()
 {
     //Clear color buffer
 
-	glClearColor(1, 1, 1, 1.0f);
+	glClearColor(0.5, 0.5, 0.5, 1.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+	{
+		glUseProgram(EffectSun.GetID());
+
+		ModelID = glGetUniformLocation(EffectSun.GetID(), "M");
+		ViewID = glGetUniformLocation(EffectSun.GetID(), "V");
+		ProjectionID = glGetUniformLocation(EffectSun.GetID(), "P");
+
+
+		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &sun_model_matrix[0][0]);
+		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &camera.GetCameraMat()[0][0]);
+		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
+
+		glBindVertexArray(Sun.m_vertex_Array_Id);
+		glDrawArrays(GL_TRIANGLES, 0, Sun.m_vertex_buffer_data.size());
+	}
+
 
 	{
 		glUseProgram(EffectSimple.GetID());
@@ -438,15 +420,23 @@ void Render()
 		ViewID = glGetUniformLocation(EffectSimple.GetID(), "V");
 		ProjectionID = glGetUniformLocation(EffectSimple.GetID(), "P");
 
+		GLuint lightID = glGetUniformLocation(EffectSimple.GetID(), "LightPosition_worldspace");
+		GLuint cameraID = glGetUniformLocation(EffectSimple.GetID(), "CameraPosition_worldspace");
 
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0][0]);
+		GLuint Texture_Brick_Location_ID = glGetUniformLocation(EffectSimple.GetID(), "Texture_Brick");
+
+		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &teapot_model_matrix[0][0]);
 		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &camera.GetCameraMat()[0][0]);
 		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
 
-		glBindVertexArray(Tree.m_vertex_Array_Id);
-		glDrawArrays(GL_TRIANGLES, 0, Tree.m_vertex_buffer_data.size());
-	}
+		glUniform3fv(lightID, 1, &sunPos[0]);
+		glUniform3fv(cameraID, 1, &camera.GetPosition()[0]);
 
+		glUniform1i(Texture_Brick_Location_ID, 0);
+
+		glBindVertexArray(Teapot.m_vertex_Array_Id);
+		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
+	}
 
 
 
