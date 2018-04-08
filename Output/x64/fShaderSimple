@@ -1,5 +1,23 @@
 #version 330 core
 
+// Ouput data
+out vec4 color;
+
+uniform vec3 LightPosition_worldspace;
+uniform vec3 CameraPosition_worldspace;
+
+uniform int fogSelector;
+uniform int depthSelect;
+uniform int vertexVsFragment;
+uniform int depthFog;
+uniform int depthFogChanges;
+uniform int ffVertexFragment;
+
+//can pass them as uniforms
+const vec3 DiffuseLight = vec3(0.15, 0.05, 0.0);
+const vec3 RimColor  = vec3(0.2, 0.2, 0.2);
+
+
 in vec4 vertexPosition_worldspace;
 in vec3 vertexNormal_worldspace;
 in vec2 UV;
@@ -7,9 +25,15 @@ in vec2 UV;
 in vec3 LightDirection_worldspace;
 in vec3 CameraDirection_worldspace;
 
+in vec4 viewSpace;
 
-// Ouput data
-out vec4 color;
+in float distVertex;
+in float normalizedDepth;
+in float fogFactorVF;
+
+float fogFactorVertex = 0;
+const vec3 fogColor = vec3(0.5,0.5,0.5);
+
 
 
 uniform sampler2D Texture_Brick;
@@ -20,9 +44,6 @@ void main()
 	vec3 L = normalize( LightDirection_worldspace );
 	vec3 V = normalize( CameraDirection_worldspace );
 
-	
-	vec3 LightColor = vec3(1, 1, 1);
-	float LightPower = 5.0f;
 	
 	//
 	float diffuseTerm = clamp( dot(N, L), 0, 1 );
@@ -40,8 +61,6 @@ void main()
 	vec3 MaterialSpecularColor = vec3(1, 1, 1);
 	
 
-//	color = V;
-//	color = MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm;	
-//	color = MaterialSpecularColor * specularTerm;	
+
 	color = vec4(MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm, 1);	
 }

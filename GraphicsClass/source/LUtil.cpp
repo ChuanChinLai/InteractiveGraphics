@@ -422,7 +422,6 @@ void Render()
 
 		GLuint lightID = glGetUniformLocation(EffectSimple.GetID(), "LightPosition_worldspace");
 		GLuint cameraID = glGetUniformLocation(EffectSimple.GetID(), "CameraPosition_worldspace");
-
 		GLuint Texture_Brick_Location_ID = glGetUniformLocation(EffectSimple.GetID(), "Texture_Brick");
 
 		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &teapot_model_matrix[0][0]);
@@ -431,6 +430,15 @@ void Render()
 
 		glUniform3fv(lightID, 1, &sunPos[0]);
 		glUniform3fv(cameraID, 1, &camera.GetPosition()[0]);
+
+
+		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "vertexVsFragment"), vertexFactor_s);
+		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "fogSelector"), fog_s);
+		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "cameraSelect"), camera_s);
+		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthSelect"), depth_s);
+		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthFog"), depthFog_s);
+		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthFogChanges"), depthFogChanges_s);
+		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "ffVertexFragment"), fogFactor_s);
 
 		glUniform1i(Texture_Brick_Location_ID, 0);
 

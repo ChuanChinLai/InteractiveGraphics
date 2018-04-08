@@ -11,12 +11,26 @@ uniform mat4 P;
 uniform vec3 LightPosition_worldspace;
 uniform vec3 CameraPosition_worldspace;
 
+uniform int vertexVsFragment;
+uniform int fogSelector;
+uniform int cameraSelect;
+uniform int depthFog;
+uniform int ffVertexFragment;
+
+
 out vec3 vertexPosition_worldspace;
 out vec3 vertexNormal_worldspace;
 out vec2 UV;
 
 out vec3 LightDirection_worldspace;
 out vec3 CameraDirection_worldspace;
+
+out vec4 viewSpace;
+
+out float distVertex;
+out float fogFactorVertex;
+out float normalizedDepth;
+out float fogFactorVF;
 
 
 void main()
@@ -30,5 +44,47 @@ void main()
 	
 	LightDirection_worldspace  = LightPosition_worldspace  - vertexPosition_worldspace;
 	CameraDirection_worldspace = CameraPosition_worldspace - vertexPosition_worldspace;
+	
+	
+	viewSpace = V * M * vec4(vertexPosition_modelspace, 1);
+	if(vertexVsFragment == 0)
+	{
+	    //compute depth
+		if(depthFog == 1)
+		{
+			//get another type of distance
+			//distVertex = (gl_Position.z /gl_Position.w)*gl_DepthRange.far*20;
+			distVertex = abs(viewSpace.z);
+		}
+		else
+		{
+		    distVertex = length(viewSpace);
+		}
+	}
+	
+		//compute factor in vertex shader
+	if(ffVertexFragment == 1)
+	{
+		if(fogSelector == 0)
+		{
+			fogFactorVF = (80 - distVertex)/(80 - 20);
+			fogFactorVF = clamp( fogFactorVF, 0.0, 1.0 );
+			    		
+		}
+		else if( fogSelector == 1)
+		{
+		   const float FogDensity = 0.05;
+		   fogFactorVF = 1.0 /exp(distVertex * FogDensity);
+		   fogFactorVF = clamp( fogFactorVF, 0.0, 1.0 );
+			   
+		}
+		else if( fogSelector == 2)
+		{
+		   const float FogDensity = 0.05;
+		   fogFactorVF = 1.0 /exp( (distVertex * FogDensity)* (distVertex * FogDensity));
+		   fogFactorVF = clamp( fogFactorVF, 0.0, 1.0 ); 
+		   		  
+		}
+	}
 	
 }
