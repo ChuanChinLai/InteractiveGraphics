@@ -81,7 +81,6 @@ unsigned int depth_s = 0;
 unsigned int vertexFactor_s = 0;
 unsigned int depthFog_s = 0;
 unsigned int depthFogChanges_s = 0;
-unsigned int fogFactor_s = 0;
 
 
 
@@ -271,13 +270,30 @@ void Input(unsigned char i_Key, int i_MouseX, int i_MouseY)
 {
 	switch (i_Key) 
 	{
+		case '0':
+			fog_s = 0; break;
+		case '1':
+			fog_s = 1; break;
+		case '2':
+			fog_s = 2; break;
+		case '3':
+			fog_s = 3; break;
+
+		case 'd':
+			//plane based v.s. range based
+			depthFog_s = !depthFog_s;
+			break;
+
+		case 'v':
+			vertexFactor_s = !vertexFactor_s;
+			break;
+			
 		//27: ESC key
 		case 27:
 			glutLeaveMainLoop();
 			break;
 
 		case 'p':
-
 			break;
 
 		case 114:
@@ -287,7 +303,7 @@ void Input(unsigned char i_Key, int i_MouseX, int i_MouseY)
 			break;
 
 		default:
-	//		std::cout << i_Key << std::endl;
+			std::cout << i_Key << std::endl;
 			break;
 	}
 }
@@ -298,7 +314,6 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 
 	switch (i_Key)
 	{
-
 	case GLUT_KEY_F6:
 
 		break;
@@ -309,25 +324,21 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 
 	case GLUT_KEY_LEFT:
 
-		camera.MoveLeft(10);
-//		camera.SetPosition(camera.GetPosition() - glm::vec3(1, 0, 0));
+		camera.MoveLeft(1);
 		break;
 
 	case GLUT_KEY_RIGHT:
 
-		camera.MoveRight(10);
-//		camera.SetPosition(camera.GetPosition() + glm::vec3(1, 0, 0));
+		camera.MoveRight(1);
 		break;
 
 	case GLUT_KEY_UP:
 
-		camera.MoveForward(10);
-//		camera.SetPosition(camera.GetPosition() + glm::vec3(0, 0, 1));
+		camera.MoveForward(1);
 		break;
 
 	case GLUT_KEY_DOWN:
-		camera.MoveBackward(10);
-//		camera.SetPosition(camera.GetPosition() - glm::vec3(0, 0, 1));
+		camera.MoveBackward(1);
 		break;
 
 	case 114:
@@ -416,21 +427,17 @@ void Render()
 		glUseProgram(EffectSimple.GetID());
 
 
-		ModelID = glGetUniformLocation(EffectSimple.GetID(), "M");
-		ViewID = glGetUniformLocation(EffectSimple.GetID(), "V");
-		ProjectionID = glGetUniformLocation(EffectSimple.GetID(), "P");
+
 
 		GLuint lightID = glGetUniformLocation(EffectSimple.GetID(), "LightPosition_worldspace");
 		GLuint cameraID = glGetUniformLocation(EffectSimple.GetID(), "CameraPosition_worldspace");
 		GLuint Texture_Brick_Location_ID = glGetUniformLocation(EffectSimple.GetID(), "Texture_Brick");
 
-		glUniformMatrix4fv(ModelID, 1, GL_FALSE, &teapot_model_matrix[0][0]);
-		glUniformMatrix4fv(ViewID, 1, GL_FALSE, &camera.GetCameraMat()[0][0]);
-		glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(EffectSimple.GetID(), "V"), 1, GL_FALSE, &camera.GetCameraMat()[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(EffectSimple.GetID(), "P"), 1, GL_FALSE, &Projection[0][0]);
 
 		glUniform3fv(lightID, 1, &sunPos[0]);
 		glUniform3fv(cameraID, 1, &camera.GetPosition()[0]);
-
 
 		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "vertexVsFragment"), vertexFactor_s);
 		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "fogSelector"), fog_s);
@@ -438,14 +445,24 @@ void Render()
 		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthSelect"), depth_s);
 		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthFog"), depthFog_s);
 		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthFogChanges"), depthFogChanges_s);
-		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "ffVertexFragment"), fogFactor_s);
-
 		glUniform1i(Texture_Brick_Location_ID, 0);
+	}
 
+	{
+		glm::mat4 model_matrix = glm::translate(teapot_model_matrix, glm::vec3(0, 0, 0));
+		glUniformMatrix4fv(glGetUniformLocation(EffectSimple.GetID(), "M"), 1, GL_FALSE, &model_matrix[0][0]);
 		glBindVertexArray(Teapot.m_vertex_Array_Id);
 		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
 	}
 
+	{
+		glm::mat4 model_matrix = glm::rotate(teapot_model_matrix, 1.0f, glm::vec3(1, 1, 1));
+		model_matrix = glm::translate(model_matrix, glm::vec3(30, 10, 0));
+
+		glUniformMatrix4fv(glGetUniformLocation(EffectSimple.GetID(), "M"), 1, GL_FALSE, &model_matrix[0][0]);
+		glBindVertexArray(Teapot.m_vertex_Array_Id);
+		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
+	}
 
 
 
