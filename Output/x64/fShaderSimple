@@ -8,9 +8,8 @@ uniform vec3 CameraPosition_worldspace;
 
 uniform int fogSelector;
 uniform int depthSelect;
-uniform int vertexVsFragment;
 uniform int depthFog;
-uniform int depthFogChanges;
+uniform int compareSelect;
 
 //can pass them as uniforms
 const vec3 DiffuseLight = vec3(0.15, 0.05, 0.0);
@@ -23,10 +22,9 @@ in vec2 UV;
 
 in vec3 LightDirection_worldspace;
 in vec3 CameraDirection_worldspace;
-
 in vec4 vertexPosition_viewspace;
+in vec4 vertexPosition_projectedspace;
 
-in float distVertex;
 in float normalizedDepth;
 
 const vec3 fogColor = vec3(0.5, 0.5, 0.5);
@@ -55,43 +53,24 @@ void main()
 	
 	vec4 teapot_color = vec4(MaterialAmbientColor + MaterialDiffuseColor * diffuseTerm + MaterialSpecularColor * specularTerm, 1);	
 	
-	//rim lighting
-	
-	float rim = 1 - max(dot(V, N), 0.0);
-	rim = smoothstep(0.6, 1.0, rim);
-	vec3 finalRim = RimColor * vec3(rim, rim, rim);
 
-	
 	//get all lights and texture
-	vec3 current_color = finalRim + teapot_color.xyz;
+	vec3 current_color = teapot_color.xyz;
 	
 
 	vec3 finalColor = vec3(0,0,0);
 	float dist = 0 ;
 	float fogFactor = 0;
 
-	if(vertexVsFragment == 1)
-	{	
-		if(depthFog == 1)
-		{
-     		if(depthFogChanges == 0)
-			{
-				dist = abs(vertexPosition_viewspace.z);
-			}
-			else
-			{
-				dist = (gl_FragCoord.z / gl_FragCoord.w);
-			}
-		}
-		else
-		{
-		     dist = length(vertexPosition_viewspace);
-		}
+	if(depthFog == 1)
+	{
+		dist = abs(vertexPosition_viewspace.z);
 	}
 	else
 	{
-		 dist = distVertex;
+	     dist = length(vertexPosition_viewspace);
 	}
+
 
 	
 	//fog model
@@ -101,7 +80,10 @@ void main()
 	}
 	else if( fogSelector == 1)
 	{
-		fogFactor = (80 - dist)/(80 - 20);
+		float fog_start = 20;
+		float fog_end = 80;
+		
+		fogFactor = (fog_end - dist)/(fog_end - fog_start);
 		fogFactor = clamp( fogFactor, 0.0, 1.0 );
 
     	finalColor = mix(fogColor, current_color, fogFactor);
@@ -116,31 +98,44 @@ void main()
 	}
 	else if( fogSelector == 3)
 	{
-		   const float FogDensity = 0.05;
-		   fogFactor = 1.0 /exp( (dist * FogDensity)* (dist * FogDensity));
-		   fogFactor = clamp( fogFactor, 0.0, 1.0 ); 
-
-		   finalColor = mix(fogColor, current_color, fogFactor);
+		const float FogDensity = 0.05;
+		fogFactor = 1.0 /exp( (dist * FogDensity)* (dist * FogDensity));
+		fogFactor = clamp( fogFactor, 0.0, 1.0 ); 
+		
+		finalColor = mix(fogColor, current_color, fogFactor);
 	}
 	else if( fogSelector == 4)
-	{
-			float be = 0.025 * smoothstep(0.0, 6.0, 10.0 - vertexPosition_viewspace.y);
-			float bi = 0.035 * smoothstep(0.0, 80, 10.0 - vertexPosition_viewspace.y);
-			float ext =  exp(-dist * be);
-			float insc = exp(-dist * bi);
+	{		
+		float be = 0.025 * smoothstep(0.0, 6.0, CameraPosition_worldspace.y - vertexPosition_viewspace.y);
+		float bi = 0.025 * smoothstep(0.0,  80, CameraPosition_worldspace.y - vertexPosition_viewspace.y);
+		float ext =  exp(-dist * be);
+		float insc = exp(-dist * bi);
 		
-		    finalColor = current_color * ext + fogColor * (1 - insc);	   
+		finalColor = fogColor * (1 - insc) + current_color * ext;	   
 	}
 	
 		
 	if(depthSelect == 1)
 	{
-		 fogFactor = 1 - fogFactor;
-		 color = vec4( fogFactor, fogFactor, fogFactor, 1.0 );
+		fogFactor = 1 - fogFactor;
+		color = vec4( fogFactor, fogFactor, fogFactor, 1.0 );
 	}
 	else
 	{
-		color = vec4(finalColor, 1);
+		if(compareSelect == 1)
+		{
+			if(vertexPosition_projectedspace.x > 0.5f)
+			{
+				color = vec4(finalColor, 1);
+			}
+			else
+			{
+				color = vec4(current_color, 1);
+			}
+		}
+		else
+		{
+			color = vec4(finalColor, 1);
+		}	
 	}
-
 }

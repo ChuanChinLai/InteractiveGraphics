@@ -76,12 +76,9 @@ float cameraRotationY = 0;
 //used in sun shader
 
 unsigned int fog_s = 0; 
-unsigned int camera_s = 0;
 unsigned int depth_s = 0;
-unsigned int vertexFactor_s = 0;
 unsigned int depthFog_s = 0;
-unsigned int depthFogChanges_s = 0;
-
+unsigned int compare_s = 0;
 
 
 bool InitGL()
@@ -117,7 +114,7 @@ bool InitGL()
 	Sun.Create("sphere.obj");
 	sun_model_matrix = glm::translate(sun_model_matrix, sunPos);
 
-	camera.SetPosition(glm::vec3(0, 30, 70));
+	camera.SetPosition(glm::vec3(0, 70, 70));
 
 	Projection = glm::perspective<float>(1, 1.0f, 0.1f, 10000.0f);
 
@@ -242,22 +239,13 @@ void Update()
 	}
 	else if (RightClicked)
 	{
-		//if(mouseXDelta > 0)
-		//	CameraPos += glm::normalize(CameraPos);
-		//else 
-		//	CameraPos -= glm::normalize(CameraPos);
-
-		//View = glm::lookAt(CameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 	}
 
 //	std::cout << " " << mouseXDelta << " " << mouseYDelta << std::endl;
 	
 	{
-		float rotX = abs(mouseXDelta) <= 1 ? 0 : mouseXDelta > 0 ? 1 : -1;
-		float rotY = abs(mouseYDelta) <= 1 ? 0 : mouseYDelta > 0 ? 1 : -1;
 
-		camera.SetRotation(glm::vec2(0.01f * rotX, 0.01f * rotY));
 	}
 
 
@@ -278,22 +266,43 @@ void Input(unsigned char i_Key, int i_MouseX, int i_MouseY)
 			fog_s = 2; break;
 		case '3':
 			fog_s = 3; break;
+		case '4':
+			fog_s = 4; break;
 
-		case 'd':
+		case 'b':
+			depth_s = !depth_s;
+
+			break;
+		case 'v':
 			//plane based v.s. range based
 			depthFog_s = !depthFog_s;
+			depthFog_s == 0 ? std::cout << "range based" << std::endl : std::cout << "plane based" << std::endl;
+
+			break;
+		
+		case 'c':
+			compare_s = !compare_s;
 			break;
 
-		case 'v':
-			vertexFactor_s = !vertexFactor_s;
-			break;
-			
 		//27: ESC key
 		case 27:
 			glutLeaveMainLoop();
 			break;
 
 		case 'p':
+			break;
+
+		case 'w':
+			camera.SetRotation(glm::vec2(0, 0.01f));
+			break;
+		case 'a':
+			camera.SetRotation(glm::vec2(0.01f, 0));
+			break;
+		case 's':
+			camera.SetRotation(glm::vec2(0, -0.01f));
+			break;
+		case 'd':
+			camera.SetRotation(glm::vec2(-0.01f, 0));
 			break;
 
 		case 114:
@@ -328,7 +337,6 @@ void SpecialInput(int i_Key, int i_MouseX, int i_MouseY)
 		break;
 
 	case GLUT_KEY_RIGHT:
-
 		camera.MoveRight(1);
 		break;
 
@@ -402,6 +410,7 @@ void Render()
     //Clear color buffer
 
 	glClearColor(0.5, 0.5, 0.5, 1.0f);
+//	glClearColor(0, 0, 0, 1.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -427,8 +436,6 @@ void Render()
 		glUseProgram(EffectSimple.GetID());
 
 
-
-
 		GLuint lightID = glGetUniformLocation(EffectSimple.GetID(), "LightPosition_worldspace");
 		GLuint cameraID = glGetUniformLocation(EffectSimple.GetID(), "CameraPosition_worldspace");
 		GLuint Texture_Brick_Location_ID = glGetUniformLocation(EffectSimple.GetID(), "Texture_Brick");
@@ -439,12 +446,10 @@ void Render()
 		glUniform3fv(lightID, 1, &sunPos[0]);
 		glUniform3fv(cameraID, 1, &camera.GetPosition()[0]);
 
-		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "vertexVsFragment"), vertexFactor_s);
 		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "fogSelector"), fog_s);
-		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "cameraSelect"), camera_s);
 		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthSelect"), depth_s);
 		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthFog"), depthFog_s);
-		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "depthFogChanges"), depthFogChanges_s);
+		glUniform1i(glGetUniformLocation(EffectSimple.GetID(), "compareSelect"), compare_s);
 		glUniform1i(Texture_Brick_Location_ID, 0);
 	}
 
@@ -464,7 +469,14 @@ void Render()
 		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
 	}
 
+	{
+		glm::mat4 model_matrix = glm::rotate(teapot_model_matrix, 1.0f, glm::vec3(0, 1, 1));
+		model_matrix = glm::translate(model_matrix, glm::vec3(-30, 20, -10));
 
+		glUniformMatrix4fv(glGetUniformLocation(EffectSimple.GetID(), "M"), 1, GL_FALSE, &model_matrix[0][0]);
+		glBindVertexArray(Teapot.m_vertex_Array_Id);
+		glDrawArrays(GL_TRIANGLES, 0, Teapot.m_vertex_buffer_data.size());
+	}
 
  //   Update screen
     glutSwapBuffers();

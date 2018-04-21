@@ -11,7 +11,6 @@ uniform mat4 P;
 uniform vec3 LightPosition_worldspace;
 uniform vec3 CameraPosition_worldspace;
 
-uniform int vertexVsFragment;
 uniform int depthFog;
 
 
@@ -21,16 +20,16 @@ out vec2 UV;
 
 out vec3 LightDirection_worldspace;
 out vec3 CameraDirection_worldspace;
-
 out vec4 vertexPosition_viewspace;
+out vec4 vertexPosition_projectedspace;
 
-out float distVertex;
 out float normalizedDepth;
 
 
 void main()
 {
 	gl_Position =  P * V * M * vec4(vertexPosition_modelspace, 1);
+	vertexPosition_projectedspace = gl_Position;
 	
 	vertexPosition_worldspace = (M * vec4(vertexPosition_modelspace, 1)).xyz;
 	vertexNormal_worldspace   = normalize(mat3(M) * vertexNormal_modelspace);
@@ -41,21 +40,4 @@ void main()
 	CameraDirection_worldspace = CameraPosition_worldspace - vertexPosition_worldspace;
 	
 	vertexPosition_viewspace = V * M * vec4(vertexPosition_modelspace, 1);
-	
-	
-	distVertex = 0.0f;
-	
-	if(vertexVsFragment == 0)
-	{
-	    //compute depth
-		if(depthFog == 1)
-		{
-			distVertex = abs(vertexPosition_viewspace.z);
-		}
-		else
-		{
-		    distVertex = length(vertexPosition_viewspace);
-		}
-	}
-
 }
